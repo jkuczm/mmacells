@@ -2,7 +2,7 @@
 
 [![latest release](http://img.shields.io/github/release/jkuczm/mmacells.svg)](https://github.com/jkuczm/mmacells/releases/latest)
 [![SemVer 2.0.0](http://img.shields.io/badge/SemVer-2.0.0-brightgreen.svg)](http://semver.org/spec/v2.0.0.html)
-[![license lp­pl1.3](http://img.shields.io/badge/license-lppl1.3-blue.svg)](http://www.ctan.org/license/lppl1.3)
+[![license lp­pl1.3](http://img.shields.io/badge/license-lppl1.3-blue.svg)](http://www.latex-project.org/lppl.txt)
 
 
 Mathematica cells in TeX.
@@ -10,7 +10,6 @@ Mathematica cells in TeX.
 
 * [Usage example](#usage-example)
 * [Installation](#installation)
-* [Compatibility](#compatibility)
 * [Bugs and requests](#bugs-and-requests)
 * [Contributing](#contributing)
 * [License](#license)
@@ -57,7 +56,8 @@ All contributions are welcome!
 ## License
 
 This package is released under
-[The LaTeX Project Public Li­cense 1.3](http://www.ctan.org/license/lppl1.3).
+[The LaTeX Project Public Li­cense](http://www.latex-project.org/lppl.txt)
+version 1.3 or (at your option) any later version.
 
 Copyright (c) 2015 [Jakub Kuczmarski](mailto:Jakub.Kuczmarski@gmail.com)
 
