@@ -1,0 +1,540 @@
+\RequirePackage{expl3,xparse}
+
+\ProvidesExplPackage {mmacells} {2015/02/04} {0.0.1}
+  {Mathematica front end cells}
+
+\RequirePackage{amsmath,bbm}
+\RequirePackage{xcolor}
+\RequirePackage{fancyvrb,listings}
+\RequirePackage{hyperref}
+
+
+\NewDocumentEnvironment {mmaCell} { O{} m }
+  { \mmacells_begin_cell:nn { #1 } { #2 } }
+  { \mmacells_end_cell: }
+
+\NewDocumentCommand \mmaCellGraphics { O{} m m }
+  { \mmacells_cell_graphics:nnn { #1 } { #2 } { #3 } }
+
+\NewDocumentCommand \mmaSet { m }
+  { \keys_set:nn { mmacells } { #1 } }
+
+\NewDocumentCommand \mmaCellIndex { }
+  { \int_use:N \g_mmacells_index_int }
+
+\NewDocumentCommand \mmaCellForm { s }
+  {
+    \IfBooleanT { #1 }
+      { \tl_if_empty:VF \l_mmacells_form_tl { // } }
+    \tl_use:N \l_mmacells_form_tl
+  }
+
+\NewDocumentCommand \mmaDef { m }
+  { \mmacells_typeset_formatted:Nn \mmacells_format_defined:n { #1 } }
+\NewDocumentCommand \mmaUnd { m }
+  { \mmacells_typeset_formatted:Nn \mmacells_format_undefined:n { #1 } }
+\NewDocumentCommand \mmaDyn { m }
+  { \mmacells_typeset_formatted:Nn \mmacells_format_dynamic:n { #1 } }
+\NewDocumentCommand \mmaLex { m }
+  { \mmacells_typeset_formatted:Nn \mmacells_format_lexical:n { #1 } }
+\NewDocumentCommand \mmaArg { m }
+  { \mmacells_typeset_formatted:Nn \mmacells_format_argument:n { #1 } }
+\NewDocumentCommand \mmaErr { m }
+  { \mmacells_typeset_formatted:Nn \mmacells_format_error:n { #1 } }
+
+
+\NewDocumentCommand \mmaLinkTarget { s o m }
+  {
+    \IfValueTF { #2 }
+      { \hypertarget { \mmacells_link_local_uri:n { #2 } } { #3 } }
+      {
+        \IfBooleanTF { #1 }
+          {
+            \hypertarget
+              { \mmacells_link_local_uri:n { \mmacells_lst_token: } }
+              { #3 }
+          }
+          { \hypertarget{ \mmacells_link_local_uri:n { #3 } }{ #3 } }
+      }
+  }
+\NewDocumentCommand \mmaLinkLocal { s o m }
+  {
+    \IfValueTF { #2 }
+      { \mmacells_link_local:nn { #2 } { #3 } }
+      {
+        \IfBooleanTF { #1 }
+          { \mmacells_link_local:nn { \mmacells_lst_token: } { #3 } }
+          { \mmacells_link_local:nn { #3 } { #3 } }
+      }
+  }
+\NewDocumentCommand \mmaLinkBuiltin { s o m }
+  {
+    \IfValueTF { #2 }
+      { \mmacells_link_builtin:nn { #2 } { #3 } }
+      {
+        \IfBooleanTF { #1 }
+          { \mmacells_link_builtin:nn { \mmacells_lst_token: } { #3 } }
+          { \mmacells_link_builtin:nn { #3 } { #3 } }
+      }
+  }
+
+\NewDocumentCommand \mmaDefineCellStyle { m m }
+  { \mmacells_define_style:nn { #1 } { #2 } }
+
+\NewDocumentCommand \mmaDefineMathReplacement { o m m O{1} }
+  {
+    \mmacells_define_math_replacement:nnn { #2 } { #3 } { #4 }
+    \IfValueT { #1 }
+      { \mmacells_define_math_replacement:nnn { #1 } { #3 } { #4 } }
+  }
+
+
+\int_new:N \g_mmacells_index_int
+\bool_new:N \g_mmacells_previous_intype_bool
+
+\bool_new:N \l_mmacells_indexed_bool
+\bool_new:N \l_mmacells_intype_bool
+\bool_new:N \l_mmacells_framed_bool
+
+\tl_new:N \l_mmacells_form_tl
+\tl_new:N \l_mmacells_label_tl
+\tl_new:N \l_mmacells_lst_literate_tl
+\tl_new:N \l_mmacells_message_link_tl
+
+\clist_new:N \l_mmacells_lst_keyval_clist
+\clist_new:N \l_mmacells_fv_keyval_clist
+\clist_new:N \l_mmacells_graphics_keyval_clist
+
+\box_new:N \l_mmacells_label_box
+
+\dim_new:N \l_mmacells_xleftmargin_dim
+\dim_new:N \l_mmacells_label_dim
+\dim_new:N \l_mmacells_label_sep_dim
+
+\cs_new:Npn \mmacells_format_defined:n #1 { #1 }
+\cs_new:Npn \mmacells_format_undefined:n #1 { #1 }
+\cs_new:Npn \mmacells_format_dynamic:n #1 { #1 }
+\cs_new:Npn \mmacells_format_lexical:n #1 { #1 }
+\cs_new:Npn \mmacells_format_argument:n #1 { #1 }
+\cs_new:Npn \mmacells_format_error:n #1 { #1 }
+\cs_new:Npn \mmacells_format_label:n #1 { #1 }
+\cs_new:Npn \mmacells_format_link:n #1 { #1 }
+
+\cs_new:Npn \mmacells_link_local_uri:n #1 { #1 }
+\cs_new:Npn \mmacells_link_builtin_uri:n #1 { #1 }
+
+\tl_new:N \l__mmacells_math_replacements_tl
+\tl_new:N \l__mmacells_math_replacements_bold_tl
+
+\keys_define:nn { mmacells }
+  {
+    definedstyle   .code:n =
+      \cs_set:Npn \mmacells_format_defined:n ##1 { #1 { ##1 } },
+    undefinedstyle .code:n =
+      \cs_set:Npn \mmacells_format_undefined:n ##1 { #1 { ##1 } },
+    dynamicstyle   .code:n =
+      \cs_set:Npn \mmacells_format_dynamic:n ##1 { #1 { ##1 } },
+    lexicalstyle   .code:n =
+      \cs_set:Npn \mmacells_format_lexical:n ##1 { #1 { ##1 } },
+    argumentstyle  .code:n =
+      \cs_set:Npn \mmacells_format_argument:n ##1 { #1 { ##1 } },
+    errorstyle  .code:n =
+      \cs_set:Npn \mmacells_format_error:n ##1 { #1 { ##1 } },
+    labelstyle     .code:n =
+      \cs_set:Npn \mmacells_format_label:n ##1 { #1 { ##1 } },
+    linkstyle     .code:n =
+      \cs_set:Npn \mmacells_format_link:n ##1 { #1 { ##1 } },
+    
+    linklocaluri .code:n =
+      \cs_set:Npn \mmacells_link_local_uri:n ##1 { #1 },
+    linkbuiltinuri .code:n =
+      \cs_set:Npn \mmacells_link_builtin_uri:n ##1 { #1 },
+    
+    xleftmargin .dim_set:N = \l_mmacells_xleftmargin_dim,
+    labelsep    .dim_set:N = \l_mmacells_label_sep_dim,
+    label       .tl_set:N = \l_mmacells_label_tl,
+    form        .tl_set:N = \l_mmacells_form_tl,
+    intype      .bool_set:N = \l_mmacells_intype_bool,
+    indexed     .bool_set:N = \l_mmacells_indexed_bool,
+    index       .code:n = \int_gset:Nn \g_mmacells_index_int { #1 - 1 },
+    
+    fv   .clist_set:N = \l_mmacells_fv_keyval_clist,
+    fv*  .code:n = \clist_put_right:Nn \l_mmacells_fv_keyval_clist { #1 },
+    lst  .clist_set:N = \l_mmacells_lst_keyval_clist,
+    lst* .code:n = \clist_put_right:Nn \l_mmacells_lst_keyval_clist { #1 },
+    literate  .tl_set:N = \l_mmacells_lst_literate_tl,
+    literate* .code:n = \tl_put_right:Nn \l_mmacells_lst_literate_tl { ~#1 },
+    
+    graphics  .clist_set:N = \l_mmacells_graphics_keyval_clist,
+    graphics* .code:n = 
+      \clist_put_right:Nn \l_mmacells_graphics_keyval_clist { #1 },
+    
+    defined      .meta:n = { lst* = { keywords = { #1 } } },
+    defined*     .meta:n = { lst* = { morekeywords = { #1 } } },
+    undefined    .meta:n = { lst* = { deletekeywords = { #1 } } },
+    dynamic      .meta:n = { lst* = { emph = {[1] #1 } } },
+    dynamic*     .meta:n = { lst* = { moreemph = {[1] #1 } } },
+    lexical      .meta:n = { lst* = { emph = {[2] #1 } } },
+    lexical*     .meta:n = { lst* = { moreemph = {[2] #1 } } },
+    argument     .meta:n = { lst* = { emph = {[3] #1 } } },
+    argument*    .meta:n = { lst* = { moreemph = {[3] #1 } } },
+    error        .meta:n = { lst* = { emph = {[4] #1 } } },
+    error*       .meta:n = { lst* = { moreemph = {[4] #1 } } },
+    linktarget   .meta:n = { lst* = { emph = {[5] #1 } } },
+    linktarget*  .meta:n = { lst* = { moreemph = {[5] #1 } } },
+    linklocal    .meta:n = { lst* = { emph = {[6] #1 } } },
+    linklocal*   .meta:n = { lst* = { moreemph = {[6] #1 } } },
+    linkbuiltin  .meta:n = { lst* = { emph = {[7] #1 } } },
+    linkbuiltin* .meta:n = { lst* = { moreemph = {[7] #1 } } },
+    
+    messagelink  .tl_set:N = \l_mmacells_message_link_tl,
+    messagelinkliterate .meta:n = {
+      literate* =
+        {>>}{{
+          \mmacells_link_builtin:Vn
+            \l_mmacells_message_link_tl
+            {\raisebox{0.2ex}{$\scriptstyle\pmb{\gg}$}}
+        }}1,
+    },
+    messagecolorchangeliterate .meta:n = {
+      literate* = {:\ }{{
+        \__mmacells_group_insetr_after:n { \color{mmaMessage}:\  }
+      }}1,
+    },
+    
+    formatted .meta:n = {
+      fv* = {
+        commandchars=\\\{\},
+        formatcom*={\everymath{\displaystyle}},
+      },
+      lst* = {
+        morefvcmdparams=\mmaDef 1,
+        morefvcmdparams=\mmaUnd 1,
+        morefvcmdparams=\mmaDyn 1,
+        morefvcmdparams=\mmaLex 1,
+        morefvcmdparams=\mmaArg 1,
+        morefvcmdparams=\mmaErr 1,
+        morefvcmdparams=\mmaLinkTarget 1,
+        morefvcmdparams=\mmaLinkLocal 1,
+        morefvcmdparams=\mmaLinkBuiltin 1,
+        morefvcmdparams=\big 1,
+        morefvcmdparams=\Big 1,
+        morefvcmdparams=\bigg 1,
+        morefvcmdparams=\Bigg 1,
+      }
+    },
+    annotations .meta:n = {
+      lst* = {
+        moredelim=[is][\mmaDef]{\\mmaDef\{}{\}},
+        moredelim=[is][\mmaUnd]{\\mmaUnd\{}{\}},
+        moredelim=[is][\mmaDyn]{\\mmaDyn\{}{\}},
+        moredelim=[is][\mmaLex]{\\mmaLex\{}{\}},
+        moredelim=[is][\mmaArg]{\\mmaArg\{}{\}},
+        moredelim=[is][\mmaErr]{\\mmaErr\{}{\}},
+        moredelim=[is][\mmaLinkTarget*]{\\mmaLinkTarget\{}{\}},
+        moredelim=[is][\mmaLinkLocal*]{\\mmaLinkLocal\{}{\}},
+        moredelim=[is][\mmaLinkBuiltin*]{\\mmaLinkBuiltin\{}{\}},
+      }
+    },
+    mathreplacements .code:n =
+      \tl_put_right:NV
+        \l_mmacells_lst_literate_tl \l__mmacells_math_replacements_tl,
+    mathreplacementsbold .code:n = 
+      \tl_put_right:NV
+        \l_mmacells_lst_literate_tl \l__mmacells_math_replacements_bold_tl,
+    
+    style .choice:,
+  }
+
+\cs_new_protected:Npn \mmacells_define_style:nn #1#2
+  { \keys_define:nn { mmacells } { style / #1 .meta:n = { #2 } } }
+
+\cs_new_protected:Npn \mmacells_begin_cell:nn #1#2
+  {
+    \VerbatimEnvironment
+    
+    \keys_set:nn { mmacells } { style={#2}, #1 }
+    
+    \mmacells_fv_set:n { xleftmargin = \dim_use:N \l_mmacells_xleftmargin_dim }
+    \mmacells_fv_set:V \l_mmacells_fv_keyval_clist
+    
+    \mmacells_lst_set_literate:V \l_mmacells_lst_literate_tl
+    \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
+    
+    \mmacells_handle_index:
+    
+    \mmacells_set_label_boxes_and_dims:
+    \dim_compare:nNnTF
+      { \l_mmacells_label_dim } > { \l_mmacells_xleftmargin_dim }
+      {
+        \mmacells_fv_set:n
+          { formatcom* = { \box_use:N \l_mmacells_label_box } }
+      }
+      {
+        \box_set_wd:Nn \l_mmacells_label_box { \l_mmacells_label_dim }
+        \__mmacells_fv_listparameters_append:n
+          { \__mmacells_append_to_labels: }
+      }
+    
+    \Verbatim
+  }
+\cs_new_protected_nopar:Npn \mmacells_end_cell:
+  { \endVerbatim }
+
+\cs_new_protected:Npn \mmacells_cell_graphics:nnn #1#2#3
+  {
+    \group_begin:
+    \keys_set:nn { mmacells } { style={#2}, #1 }
+    \mmacells_handle_index:
+    
+    \dim_set_eq:NN \l_mmacells_label_dim \l_mmacells_xleftmargin_dim
+    \dim_sub:Nn \l_mmacells_label_dim { \l_mmacells_label_sep_dim }
+    
+    \begin{list}{\box_use:N \l_mmacells_label_box}{
+      \labelsep=\l_mmacells_label_sep_dim
+      \leftmargin=\l_mmacells_xleftmargin_dim
+      \labelwidth=\l_mmacells_label_dim
+    }
+      \mmacells_set_label_boxes_and_dims:
+    
+      \dim_compare:nNnTF
+        { \l_mmacells_label_dim } > { \l_mmacells_xleftmargin_dim }
+        { \item\leavevmode\\ }
+        { \item }
+      
+      \mmacells_includegraphics:Vn \l_mmacells_graphics_keyval_clist { #3 }
+    \end{list}
+    \group_end:
+  }
+
+\cs_new_protected_nopar:Npn \mmacells_handle_index:
+  {
+    \bool_if:NT \l_mmacells_indexed_bool
+      {
+        \bool_if:NTF \l_mmacells_intype_bool
+          { \int_gincr:N \g_mmacells_index_int }
+          {
+            \bool_if:NF \g_mmacells_previous_intype_bool
+              { \int_gincr:N \g_mmacells_index_int }
+          }
+        \bool_gset_eq:NN
+          \g_mmacells_previous_intype_bool
+          \l_mmacells_intype_bool
+      }
+  }
+
+\cs_new_protected_nopar:Npn \mmacells_set_label_boxes_and_dims:
+  {
+    \hbox_set:Nn \l_mmacells_label_box
+      {
+        \mmacells_typeset_formatted:NV
+          \mmacells_format_label:n \l_mmacells_label_tl
+      }
+    \dim_set:Nn \l_mmacells_label_dim { \box_wd:N \l_mmacells_label_box }
+    \dim_add:Nn \l_mmacells_label_dim { \l_mmacells_label_sep_dim }
+  }
+
+\cs_new:Npn \mmacells_typeset_formatted:Nn #1#2
+  {
+    \group_begin:
+    #1 { #2 }
+    \group_end:
+  }
+\cs_generate_variant:Nn \mmacells_typeset_formatted:Nn { NV }
+
+\cs_new_eq:NN \mmacells_fv_set:n \fvset
+\cs_generate_variant:Nn \mmacells_fv_set:n { V }
+
+\cs_new_eq:NN \mmacells_lst_set:n \lstset
+\cs_generate_variant:Nn \mmacells_lst_set:n { V }
+
+\cs_new_protected:Npn \mmacells_lst_set_literate:n #1
+  { \mmacells_lst_set:n { literate = { #1 } } }
+\cs_generate_variant:Nn \mmacells_lst_set_literate:n { V }
+
+\cs_new:Npn \mmacells_includegraphics:nn #1#2
+  { \includegraphics [ #1 ] { #2 } }
+\cs_generate_variant:Nn \mmacells_includegraphics:nn { Vn }
+
+
+\cs_new_protected:Npn \mmacells_define_math_replacement:nnn #1#2#3
+  {
+    \tl_put_right:Nn \l__mmacells_math_replacements_tl
+      { ~{#1}{{\ensuremath{#2}}}{#3} }
+    \tl_put_right:Nn \l__mmacells_math_replacements_bold_tl
+      { ~{#1}{{\ensuremath{\pmb{#2}}}}{#3} }
+  }
+
+
+\cs_new_protected:Npn \mmacells_link_local:nn #1#2
+  {\__mmacells_link:NNnn \hyperlink \mmacells_link_local_uri:n { #1 } { #2 } }
+\cs_generate_variant:Nn \mmacells_link_local:nn { Vn }
+
+\cs_new_protected:Npn \mmacells_link_builtin:nn #1#2
+  { \__mmacells_link:NNnn \href \mmacells_link_builtin_uri:n { #1 } { #2 } }
+\cs_generate_variant:Nn \mmacells_link_builtin:nn { Vn }
+
+\cs_new_protected:Npn \__mmacells_link:NNnn #1#2#3#4
+  {
+    \group_begin:
+    \tl_if_blank:nTF { #3 }
+      { \mmacells_format_link:n { #4 } }
+      {
+        \hypersetup{urlcolor=.,linkcolor=.,pdfborder={0~0~0}}
+        #1 { #2 { #3 } } { \mmacells_format_link:n { #4 } }
+      }
+    \group_end:
+  }
+
+\cs_new_nopar:Npn \mmacells_lst_token: { \the \lst@token }
+
+\cs_new_protected:Npn \__mmacells_fv_listparameters_append:n #1
+  { \FV@AddToHook \FV@ListParameterHook { #1 } }
+
+\cs_new_protected_nopar:Npn \__mmacells_append_to_labels:
+  {
+    \hbox_set:Nn \@labels
+      {
+        \hbox_unpack:N \@labels
+        \skip_horizontal:N \l_mmacells_xleftmargin_dim
+        \hbox_overlap_left:n { \box_use:N \l_mmacells_label_box }
+      }
+  }
+
+\cs_new_protected_nopar:Npn \__mmacells_group_insetr_after:n #1
+  {
+    \cs_gset_protected_nopar:Npn \g__mmacells_tmp_cs { #1 }
+    \group_insert_after:N \g__mmacells_tmp_cs
+  }
+
+\makeatother
+\ExplSyntaxOff
+
+
+% Analogs of common Mathematica formatting boxes.
+% 
+% Using \text inside math commands that rescale arguments, since otherwise code
+% fragments processed with listings are not properly scaled in nested connands.
+
+% SubscriptBox
+\NewDocumentCommand \mmaSup { m m } {\ensuremath{#1^\text{#2}}}
+% SuperscriptBox
+\NewDocumentCommand \mmaSub { m m } {\ensuremath{#1_\text{#2}}}
+% SubsuperscriptBox
+\NewDocumentCommand \mmaSubSup { m m m } {\ensuremath{#1_\text{#2}^\text{#3}}}
+% UnderscriptBox
+\NewDocumentCommand \mmaUnder { m m } {\ensuremath{\underset{\text{#2}}{#1}}}
+% OverscriptBox
+\NewDocumentCommand \mmaOver { m m } {\ensuremath{\overset{\text{#2}}{#1}}}
+% UnderoverscriptBox
+\NewDocumentCommand \mmaUnderOver { m m m }
+  {\ensuremath{\underset{\text{#2}}{\overset{\text{#3}}{#1}}}}
+% FractionBox
+\NewDocumentCommand \mmaFrac { m m } {\ensuremath{\frac{\text{#1}}{\text{#2}}}}
+% SqrtBox
+\NewDocumentCommand \mmaSqrt { m } {\ensuremath{\sqrt{#1}}}
+% RadicalBox
+\NewDocumentCommand \mmaRadical { m m } {\ensuremath{\sqrt[\text{#2}]{#1}}}
+
+\mmaSet{
+  lst={
+    fancyvrb,
+    language=[base]Mathematica,
+  },
+  xleftmargin=4.8em,
+  labelsep=.6em,
+  definedstyle=\color{black},
+  undefinedstyle=\color{mmaUndefined},
+  dynamicstyle=\color{mmaDynamic},
+  lexicalstyle=\color{mmaLexical},
+  argumentstyle=\color{mmaLexical}\slshape, % or \itshape if supported
+  errorstyle=\color{mmaError},
+  labelstyle=\normalfont\color{mmaLabel}\sffamily\scriptsize,
+  linkstyle=\color{mmaLink},
+  linkbuiltinuri=http://reference.wolfram.com/language/ref/#1.html,
+}
+
+\definecolor{mmaLabel}{RGB}{70,70,153}
+\definecolor{mmaLink}{RGB}{20,40,153}
+\definecolor{mmaUndefined}{RGB}{0,44,195}
+\definecolor{mmaDynamic}{RGB}{60,125,145}
+\definecolor{mmaLexical}{RGB}{67,137,88}
+\definecolor{mmaMessage}{RGB}{129,43,38}
+\definecolor{mmaError}{RGB}{255,51,51}
+\definecolor{mmaString}{gray}{.4}
+\definecolor{mmaComment}{gray}{.6}
+
+\lstdefinelanguage[base]{Mathematica}[5.2]{Mathematica}{
+  morestring=[b]", % " inside string is escaped by backslash.
+  morecomment=[n]{(*}{*)}, % Mathematica comments can be nested.
+  deletekeywords=[2]$, % $ is not a keyword.
+  morekeywords={@,_},
+  keywordsprefix=_, % Blank... patterns with head
+}
+\lstdefinestyle{MathematicaFrontEnd}{
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces,
+}
+\lstdefinestyle{MathematicaFrontEndOut}{
+  style=MathematicaFrontEnd,
+  basicstyle=\normalfont\color{black}\ttfamily,
+  keywordstyle=,
+  stringstyle=,
+  commentstyle=,
+  identifierstyle=,
+  emphstyle=,
+}
+\lstdefinestyle{MathematicaFrontEndIn}{
+  style=MathematicaFrontEnd,
+  basicstyle=\normalfont\color{black}\ttfamily\bfseries,
+  keywordstyle=\mmaDef,
+  stringstyle=\color{mmaString},
+  commentstyle=\color{mmaComment},
+  identifierstyle=\mmaUnd,
+  emphstyle={[1]\mmaDyn},% Block, Table, ...
+  emphstyle={[2]\mmaLex}, % Module, With
+  emphstyle={[3]\mmaArg}, % arguments in functions and rules
+  emphstyle={[4]\mmaErr}, % errors
+  emphstyle={[5]\mmaLinkTarget*}, % local links targets
+  emphstyle={[6]\mmaLinkLocal*}, % links to local targets
+  emphstyle={[7]\mmaLinkBuiltin*}, % links to builtin symbols
+}
+
+\mmaDefineCellStyle{Code}{
+  indexed,
+  intype,
+  annotations,
+  lst*={style=MathematicaFrontEndIn},
+  label={In[\mmaCellIndex]:=},
+}
+\mmaDefineCellStyle{Input}{
+  style/Code,
+  formatted,
+  mathreplacementsbold,
+}
+\mmaDefineCellStyle{Output}{
+  indexed,
+  formatted,
+  mathreplacements,
+  lst*={style=MathematicaFrontEndOut},
+  label={Out[\mmaCellIndex]\mmaCellForm*=},
+}
+\mmaDefineCellStyle{Print}{
+  style/Output,
+  indexed=false,
+  fv*={formatcom*={\small}},
+  label=,
+}
+\mmaDefineCellStyle{Message}{
+  style/Print,
+  % Using fv formatcom instead of lst basicstyle due to bug in fv+lst interface
+  % that causes last line choose color set by formatcom instead of basicstyle.
+  fv*={formatcom*={\normalfont\color{mmaMessage}\sffamily\small}},
+  lst*={
+    language=,
+    basicstyle=\color{mmaComment},
+  },
+  messagecolorchangeliterate,
+  messagelinkliterate,
+}
