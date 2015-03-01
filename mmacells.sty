@@ -124,6 +124,10 @@
 \dim_new:N \l_mmacells_label_dim
 \dim_new:N \l_mmacells_label_sep_dim
 
+\cs_new_nopar:Npn \mmacells_begin_verbatimenv: { }
+\cs_new_nopar:Npn \mmacells_end_verbatimenv: { }
+\cs_new_nopar:Npn \mmacells_post_wide_label: { }
+
 \cs_new:Npn \mmacells_format_defined:n #1 { #1 }
 \cs_new:Npn \mmacells_format_undefined:n #1 { #1 }
 \cs_new:Npn \mmacells_format_dynamic:n #1 { #1 }
@@ -139,8 +143,43 @@
 \tl_new:N \l__mmacells_math_replacements_tl
 \tl_new:N \l__mmacells_math_replacements_bold_tl
 
+\cs_new_nopar:Npn \__mmacells_prepare_verbatimenv: { }
+\cs_new_nopar:Npn \__mmacells_begin_verbatimenv: { }
+\cs_new_nopar:Npn \__mmacells_end_verbatimenv: { }
+
+\cs_new_protected_nopar:Npn \mmacells_prepare_verbatimenv:
+  {
+    \mmacells_fv_set:n { formatcom* = \__mmacells_fix_labels: }
+    \mmacells_fv_set:V \l_mmacells_fv_keyval_clist
+
+    \mmacells_lst_set_literate:V \l_mmacells_lst_literate_tl
+    \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
+
+    \VerbatimEnvironment
+  }
+
 \keys_define:nn { mmacells }
   {
+    verbatimenv .code:n = {
+      \tl_if_empty:nTF { #1 }
+        {
+          \cs_set_nopar:Npn \__mmacells_prepare_verbatimenv: { }
+          \cs_set_nopar:Npn \__mmacells_begin_verbatimenv: { }
+          \cs_set_nopar:Npn \__mmacells_end_verbatimenv: { }
+        }
+        {
+          \cs_set_eq:NN
+            \__mmacells_prepare_verbatimenv:
+            \mmacells_prepare_verbatimenv:
+          \cs_set_eq:Nc \__mmacells_begin_verbatimenv: { #1 }
+          \cs_set_eq:Nc \__mmacells_end_verbatimenv: { end #1 }
+        }
+    },
+    verbatimenv .initial:n = Verbatim,
+    
+    postwidelabel .code:n = \cs_set:Npn \mmacells_post_wide_label: { #1 },
+    postwidelabel .initial:n = { \leavevmode \@nobreaktrue \parskip=0pt },
+    
     definedstyle   .code:n =
       \cs_set:Npn \mmacells_format_defined:n ##1 { #1 { ##1 } },
     undefinedstyle .code:n =
@@ -264,40 +303,10 @@
 
 \cs_new_protected:Npn \mmacells_begin_cell:nn #1#2
   {
-    \VerbatimEnvironment
-    
     \keys_set:nn { mmacells } { style={#2}, #1 }
     
-    \mmacells_fv_set:n { xleftmargin = \dim_use:N \l_mmacells_xleftmargin_dim }
-    \mmacells_fv_set:V \l_mmacells_fv_keyval_clist
+    \__mmacells_prepare_verbatimenv:
     
-    \mmacells_lst_set_literate:V \l_mmacells_lst_literate_tl
-    \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
-    
-    \mmacells_handle_index:
-    
-    \mmacells_set_label_boxes_and_dims:
-    \dim_compare:nNnTF
-      { \l_mmacells_label_dim } > { \l_mmacells_xleftmargin_dim }
-      {
-        \mmacells_fv_set:n
-          { formatcom* = { \box_use:N \l_mmacells_label_box } }
-      }
-      {
-        \box_set_wd:Nn \l_mmacells_label_box { \l_mmacells_label_dim }
-        \__mmacells_fv_listparameters_append:n
-          { \__mmacells_append_to_labels: }
-      }
-    
-    \Verbatim
-  }
-\cs_new_protected_nopar:Npn \mmacells_end_cell:
-  { \endVerbatim }
-
-\cs_new_protected:Npn \mmacells_cell_graphics:nnn #1#2#3
-  {
-    \group_begin:
-    \keys_set:nn { mmacells } { style={#2}, #1 }
     \mmacells_handle_index:
     
     \dim_set_eq:NN \l_mmacells_label_dim \l_mmacells_xleftmargin_dim
@@ -310,13 +319,27 @@
     }
       \mmacells_set_label_boxes_and_dims:
     
-      \dim_compare:nNnTF
+      \item
+      \dim_compare:nNnT
         { \l_mmacells_label_dim } > { \l_mmacells_xleftmargin_dim }
-        { \item\leavevmode\\ }
-        { \item }
-      
-      \mmacells_includegraphics:Vn \l_mmacells_graphics_keyval_clist { #3 }
+        { \mmacells_post_wide_label: }
+    
+      \__mmacells_begin_verbatimenv:
+  }
+\cs_new_nopar:Npn \mmacells_end_cell:
+  {
+      \__mmacells_end_verbatimenv:
     \end{list}
+  }
+
+\cs_new_protected:Npn \mmacells_cell_graphics:nnn #1#2#3
+  {
+    \group_begin:
+    \mmacells_begin_cell:nn
+      { verbatimenv=, postwidelabel=\leavevmode\\, #1 }
+      { #2 }
+    \mmacells_includegraphics:Vn \l_mmacells_graphics_keyval_clist { #3 }
+    \mmacells_end_cell:
     \group_end:
   }
 
@@ -401,16 +424,12 @@
 
 \cs_new_nopar:Npn \mmacells_lst_token: { \the \lst@token }
 
-\cs_new_protected:Npn \__mmacells_fv_listparameters_append:n #1
-  { \FV@AddToHook \FV@ListParameterHook { #1 } }
-
-\cs_new_protected_nopar:Npn \__mmacells_append_to_labels:
+\cs_new_protected_nopar:Npn \__mmacells_fix_labels:
   {
     \hbox_set:Nn \@labels
       {
-        \hbox_unpack:N \@labels
-        \skip_horizontal:N \l_mmacells_xleftmargin_dim
-        \hbox_overlap_left:n { \box_use:N \l_mmacells_label_box }
+        \skip_horizontal:N \@totalleftmargin
+        \hbox_unpack_clear:N \@labels
       }
   }
 
