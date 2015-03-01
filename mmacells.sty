@@ -108,6 +108,7 @@
 \bool_new:N \l_mmacells_indexed_bool
 \bool_new:N \l_mmacells_intype_bool
 \bool_new:N \l_mmacells_formatted_bool
+\bool_new:N \l_mmacells_annotations_bool
 
 \tl_new:N \l_mmacells_form_tl
 \tl_new:N \l_mmacells_label_tl
@@ -179,6 +180,22 @@
 
     \mmacells_lst_set_literate:V \l_mmacells_lst_literate_tl
     \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
+    
+    \bool_if:NT \l_mmacells_annotations_bool
+      {
+        \mmacells_lst_set:n
+          {
+            moredelim=[is][\mmaDef]{\\mmaDef\{}{\}},
+            moredelim=[is][\mmaUnd]{\\mmaUnd\{}{\}},
+            moredelim=[is][\mmaDyn]{\\mmaDyn\{}{\}},
+            moredelim=[is][\mmaLex]{\\mmaLex\{}{\}},
+            moredelim=[is][\mmaArg]{\\mmaArg\{}{\}},
+            moredelim=[is][\mmaErr]{\\mmaErr\{}{\}},
+            moredelim=[is][\mmaLinkTarget*]{\\mmaLinkTarget\{}{\}},
+            moredelim=[is][\mmaLinkLocal*]{\\mmaLinkLocal\{}{\}},
+            moredelim=[is][\mmaLinkBuiltin*]{\\mmaLinkBuiltin\{}{\}},
+          }
+      }
 
     \VerbatimEnvironment
   }
@@ -280,19 +297,8 @@
     },
     
     formatted   .bool_set:N = \l_mmacells_formatted_bool,
-    annotations .meta:n = {
-      lst* = {
-        moredelim=[is][\mmaDef]{\\mmaDef\{}{\}},
-        moredelim=[is][\mmaUnd]{\\mmaUnd\{}{\}},
-        moredelim=[is][\mmaDyn]{\\mmaDyn\{}{\}},
-        moredelim=[is][\mmaLex]{\\mmaLex\{}{\}},
-        moredelim=[is][\mmaArg]{\\mmaArg\{}{\}},
-        moredelim=[is][\mmaErr]{\\mmaErr\{}{\}},
-        moredelim=[is][\mmaLinkTarget*]{\\mmaLinkTarget\{}{\}},
-        moredelim=[is][\mmaLinkLocal*]{\\mmaLinkLocal\{}{\}},
-        moredelim=[is][\mmaLinkBuiltin*]{\\mmaLinkBuiltin\{}{\}},
-      }
-    },
+    annotations .bool_set:N = \l_mmacells_annotations_bool,
+    
     mathreplacements .code:n =
       \tl_put_right:NV
         \l_mmacells_lst_literate_tl \l__mmacells_math_replacements_tl,
