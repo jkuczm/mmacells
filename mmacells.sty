@@ -109,6 +109,7 @@
 \bool_new:N \l_mmacells_intype_bool
 \bool_new:N \l_mmacells_formatted_bool
 \bool_new:N \l_mmacells_annotations_bool
+\bool_new:N \l_mmacells_message_link_literate_bool
 
 \tl_new:N \l_mmacells_form_tl
 \tl_new:N \l_mmacells_label_tl
@@ -172,6 +173,18 @@
             morefvcmdparams=\Big 1,
             morefvcmdparams=\bigg 1,
             morefvcmdparams=\Bigg 1,
+          }
+      }
+
+    \bool_if:NT \l_mmacells_message_link_literate_bool
+      {
+        \tl_put_right:Nn \l_mmacells_lst_literate_tl
+          {
+            {>>}{{
+              \mmacells_link_builtin:Vn
+                \l_mmacells_message_link_tl
+                { \raisebox{0.2ex}{$\scriptstyle\pmb{\gg}$} }
+            }}1
           }
       }
     
@@ -282,14 +295,7 @@
     linkbuiltin* .meta:n = { lst* = { moreemph = {[7] #1 } } },
     
     messagelink  .tl_set:N = \l_mmacells_message_link_tl,
-    messagelinkliterate .meta:n = {
-      literate* =
-        {>>}{{
-          \mmacells_link_builtin:Vn
-            \l_mmacells_message_link_tl
-            {\raisebox{0.2ex}{$\scriptstyle\pmb{\gg}$}}
-        }}1,
-    },
+    messagelinkliterate .bool_set:N = \l_mmacells_message_link_literate_bool,
     messagecolorchangeliterate .meta:n = {
       literate* = {:\ }{{
         \__mmacells_group_insetr_after:n { \color{mmaMessage}:\  }
