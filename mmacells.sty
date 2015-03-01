@@ -197,6 +197,16 @@
               \__mmacells_group_insetr_after:n { \color{mmaMessage}:\  }
             }}1
           }
+        % Using format line wrapper in addition to setting \color above due to
+        % bug in fv+lst interface, that causes last line to loose it's color.
+        % Color for last line could be set using fv formatcom key, but this
+        % adds addition vertical space after Verbatim environment.
+        \cs_set:Npn \mmacells_format_line_wrapper:n ##1
+          {
+            \int_compare:nNnT { \value{FancyVerbLine} } > { 1 }
+              { \color{mmaMessage} }
+            ##1
+          }
       }
     
     \mmacells_fv_set:n { formatcom* = \__mmacells_fix_labels: }
@@ -598,12 +608,9 @@
 }
 \mmaDefineCellStyle{Message}{
   style/Print,
-  % Using fv formatcom instead of lst basicstyle due to bug in fv+lst interface
-  % that causes last line choose color set by formatcom instead of basicstyle.
-  fv*={formatcom*={\normalfont\color{mmaMessage}\sffamily\small}},
   lst*={
     language=,
-    basicstyle=\color{mmaComment},
+    basicstyle=\normalfont\sffamily\small\color{mmaComment},
   },
   messagecolorchangeliterate,
   messagelinkliterate,
