@@ -150,6 +150,7 @@
 \cs_new_nopar:Npn \__mmacells_prepare_verbatimenv: { }
 \cs_new_nopar:Npn \__mmacells_begin_verbatimenv: { }
 \cs_new_nopar:Npn \__mmacells_end_verbatimenv: { }
+\cs_set_nopar:Npn \__mmacells_add_math_replacements: { }
 
 \cs_new_protected_nopar:Npn \mmacells_prepare_verbatimenv:
   {
@@ -208,6 +209,8 @@
             ##1
           }
       }
+    
+    \__mmacells_add_math_replacements:
     
     \mmacells_fv_set:n { formatcom* = \__mmacells_fix_labels: }
     \mmacells_fv_set:V \l_mmacells_fv_keyval_clist
@@ -328,12 +331,21 @@
     formatted   .bool_set:N = \l_mmacells_formatted_bool,
     annotations .bool_set:N = \l_mmacells_annotations_bool,
     
-    mathreplacements .code:n =
-      \tl_put_right:NV
-        \l_mmacells_lst_literate_tl \l__mmacells_math_replacements_tl,
-    mathreplacementsbold .code:n = 
-      \tl_put_right:NV
-        \l_mmacells_lst_literate_tl \l__mmacells_math_replacements_bold_tl,
+    mathreplacements .choice:,
+    mathreplacements / light .code:n =
+      \cs_set_protected_nopar:Npn \__mmacells_add_math_replacements:
+        {
+          \tl_put_right:NV
+            \l_mmacells_lst_literate_tl \l__mmacells_math_replacements_tl
+        },
+    mathreplacements / bold .code:n =
+      \cs_set_protected_nopar:Npn \__mmacells_add_math_replacements:
+        {
+          \tl_put_right:NV
+            \l_mmacells_lst_literate_tl \l__mmacells_math_replacements_bold_tl
+        },
+    mathreplacements / none .code:n =
+      \cs_set_nopar:Npn \__mmacells_add_math_replacements: { },
     
     style .choice:,
   }
@@ -591,12 +603,13 @@
 \mmaDefineCellStyle{Input}{
   style/Code,
   formatted,
-  mathreplacementsbold,
+  annotations=false,
+  mathreplacements=bold,
 }
 \mmaDefineCellStyle{Output}{
   indexed,
   formatted,
-  mathreplacements,
+  mathreplacements=light,
   lst*={style=MathematicaFrontEndOut},
   label={Out[\mmaCellIndex]\mmaCellForm*=},
 }
