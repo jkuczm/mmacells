@@ -92,9 +92,6 @@
 \tl_new:N \l_mmacells_lst_literate_tl
 \tl_new:N \l_mmacells_message_link_tl
 
-\clist_new:N \l_mmacells_lst_keyval_clist
-\clist_new:N \l_mmacells_fv_keyval_clist
-\clist_new:N \l_mmacells_graphics_keyval_clist
 \clist_new:N \l_mmacells_annotations_lst_keyval_clist
 \clist_new:N \l_mmacells_formatted_lst_keyval_clist
 \clist_new:N \l_mmacells_frontendin_style_lst_keyval_clist
@@ -176,6 +173,18 @@
     
     \__mmacells_clist_put_right:Nncn \l_mmacells_formatted_lst_keyval_clist
       { morefvcmdparams= } { mma#1 } { 1 }
+  }
+
+\cs_new_protected:Npn \mmacells_define_transfer_keys:n #1
+  {
+    \clist_new:c { l_mmacells_#1_keyval_clist }
+    
+    \keys_define:nn { mmacells }
+      {
+        #1  .clist_set:c = { l_mmacells_#1_keyval_clist },
+        #1* .code:n =
+          \clist_put_right:cn { l_mmacells_#1_keyval_clist } { ##1 },
+      }
   }
 
 
@@ -280,16 +289,8 @@
     index       .code:n = \int_gset:Nn \g_mmacells_index_int { #1 - 1 },
     addtoindex  .code:n = \int_gadd:Nn \g_mmacells_index_int { #1 },
     
-    fv   .clist_set:N = \l_mmacells_fv_keyval_clist,
-    fv*  .code:n = \clist_put_right:Nn \l_mmacells_fv_keyval_clist { #1 },
-    lst  .clist_set:N = \l_mmacells_lst_keyval_clist,
-    lst* .code:n = \clist_put_right:Nn \l_mmacells_lst_keyval_clist { #1 },
     literate  .tl_set:N = \l_mmacells_lst_literate_tl,
     literate* .code:n = \tl_put_right:Nn \l_mmacells_lst_literate_tl { ~#1 },
-    
-    graphics  .clist_set:N = \l_mmacells_graphics_keyval_clist,
-    graphics* .code:n = 
-      \clist_put_right:Nn \l_mmacells_graphics_keyval_clist { #1 },
     
     messagelink  .tl_set:N = \l_mmacells_message_link_tl,
     messagelinkliterate .bool_set:N = \l_mmacells_message_link_literate_bool,
@@ -317,6 +318,10 @@
     
     style .choice:,
   }
+
+\mmacells_define_transfer_keys:n { fv }
+\mmacells_define_transfer_keys:n { lst }
+\mmacells_define_transfer_keys:n { graphics }
 
 \cs_new_protected:Npn \mmacells_define_style:nn #1#2
   { \keys_define:nn { mmacells } { style / #1 .meta:n = { #2 } } }
