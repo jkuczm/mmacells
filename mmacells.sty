@@ -181,9 +181,11 @@
     
     \keys_define:nn { mmacells }
       {
-        #1  .clist_set:c = { l_mmacells_#1_keyval_clist },
-        #1* .code:n =
-          \clist_put_right:cn { l_mmacells_#1_keyval_clist } { ##1 },
+        #1       .clist_set:c = { l_mmacells_#1_keyval_clist },
+        #1*      .code:n =
+          \clist_put_right:cn   { l_mmacells_#1_keyval_clist } { ##1 },
+        delete#1 .code:n =
+          \clist_remove_all:cn  { l_mmacells_#1_keyval_clist } { ##1 },
       }
   }
 
