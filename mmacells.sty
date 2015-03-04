@@ -542,6 +542,7 @@
 \mmaDefineAnnotation[Loc]{local}
 \mmaDefineAnnotation[Pat]{pattern}
 \mmaDefineAnnotation[Exc]{excessargument}
+\mmaDefineAnnotation[Snt]{syntaxerror}
 \mmaDefineAnnotation[Emp]{emphasizedsyntaxerror}
 \mmaDefineAnnotation[Fmt]{formattingerror}
 
@@ -562,6 +563,7 @@
   localstyle=\color{mmaLocal},
   patternstyle=\color{mmaLocal}\slshape, % or \itshape if supported
   excessargumentstyle=\color{mmaError},
+  syntaxerrorstyle=\color{mmaSyntaxError},
   emphasizedsyntaxerrorstyle={%
     \color{mmaEmphasizedError}\mmaHl{mmaEmphasizedErrorBackground}%
   },
@@ -580,6 +582,7 @@
 \definecolor{mmaLocal}{RGB}{67,137,88}
 \definecolor{mmaMessage}{RGB}{129,43,38}
 \definecolor{mmaError}{RGB}{255,51,51}
+\definecolor{mmaSyntaxError}{RGB}{194,85,204}
 \definecolor{mmaEmphasizedError}{RGB}{204,0,0}
 \definecolor{mmaEmphasizedErrorBackground}{RGB}{255,225,130}
 \definecolor{mmaFormattingError}{RGB}{255,85,85}
