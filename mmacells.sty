@@ -538,10 +538,10 @@
 
 
 \mmaDefineAnnotation[Und]{undefined}
-\mmaDefineAnnotation[Dyn]{dynamic}
-\mmaDefineAnnotation[Lex]{lexical}
-\mmaDefineAnnotation[Arg]{argument}
-\mmaDefineAnnotation[Err]{error}
+\mmaDefineAnnotation[Fnc]{functionlocal}
+\mmaDefineAnnotation[Loc]{local}
+\mmaDefineAnnotation[Pat]{pattern}
+\mmaDefineAnnotation[Exc]{excessargument}
 
 
 \mmaSet{
@@ -553,10 +553,10 @@
   labelsep=.6em,
   definedstyle=\color{black},
   undefinedstyle=\color{mmaUndefined},
-  dynamicstyle=\color{mmaDynamic},
-  lexicalstyle=\color{mmaLexical},
-  argumentstyle=\color{mmaLexical}\slshape, % or \itshape if supported
-  errorstyle=\color{mmaError},
+  functionlocalstyle=\color{mmaFunctionLocal},
+  localstyle=\color{mmaLocal},
+  patternstyle=\color{mmaLocal}\slshape, % or \itshape if supported
+  excessargumentstyle=\color{mmaError},
   labelstyle=\normalfont\color{mmaLabel}\sffamily\scriptsize,
   linkstyle=\color{mmaLink},
   linkbuiltinuri=http://reference.wolfram.com/language/ref/#1.html,
@@ -565,8 +565,8 @@
 \definecolor{mmaLabel}{RGB}{70,70,153}
 \definecolor{mmaLink}{RGB}{20,40,153}
 \definecolor{mmaUndefined}{RGB}{0,44,195}
-\definecolor{mmaDynamic}{RGB}{60,125,145}
-\definecolor{mmaLexical}{RGB}{67,137,88}
+\definecolor{mmaFunctionLocal}{RGB}{60,125,145}
+\definecolor{mmaLocal}{RGB}{67,137,88}
 \definecolor{mmaMessage}{RGB}{129,43,38}
 \definecolor{mmaError}{RGB}{255,51,51}
 \definecolor{mmaString}{gray}{.4}
