@@ -260,12 +260,10 @@
     postwidelabel .initial:n = { \leavevmode \@nobreaktrue \parskip=0pt },
     
     formatline .code:n =
-      \cs_set:Npn \mmacells_format_line_wrapper:n ##1 { #1 { ##1 } },
+      \mmacells_set_formatting_function:nn { line_wrapper } { #1 },
     
-    labelstyle     .code:n =
-      \cs_set:Npn \mmacells_format_label:n ##1 { #1 { ##1 } },
-    linkstyle     .code:n =
-      \cs_set:Npn \mmacells_format_link:n ##1 { #1 { ##1 } },
+    labelstyle .code:n = \mmacells_set_formatting_function:nn { label } { #1 },
+    linkstyle  .code:n = \mmacells_set_formatting_function:nn { link } { #1 },
     
     linklocaluri .code:n =
       \cs_set:Npn \mmacells_link_local_uri:n ##1 { #1 },
