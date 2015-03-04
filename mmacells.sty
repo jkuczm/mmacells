@@ -43,41 +43,6 @@
   }
 
 
-\NewDocumentCommand \mmaLinkTarget { s o m }
-  {
-    \IfValueTF { #2 }
-      { \hypertarget { \mmacells_link_local_uri:n { #2 } } { #3 } }
-      {
-        \IfBooleanTF { #1 }
-          {
-            \hypertarget
-              { \mmacells_link_local_uri:n { \mmacells_lst_token: } }
-              { #3 }
-          }
-          { \hypertarget{ \mmacells_link_local_uri:n { #3 } }{ #3 } }
-      }
-  }
-\NewDocumentCommand \mmaLinkLocal { s o m }
-  {
-    \IfValueTF { #2 }
-      { \mmacells_link_local:nn { #2 } { #3 } }
-      {
-        \IfBooleanTF { #1 }
-          { \mmacells_link_local:nn { \mmacells_lst_token: } { #3 } }
-          { \mmacells_link_local:nn { #3 } { #3 } }
-      }
-  }
-\NewDocumentCommand \mmaLinkBuiltin { s o m }
-  {
-    \IfValueTF { #2 }
-      { \mmacells_link_builtin:nn { #2 } { #3 } }
-      {
-        \IfBooleanTF { #1 }
-          { \mmacells_link_builtin:nn { \mmacells_lst_token: } { #3 } }
-          { \mmacells_link_builtin:nn { #3 } { #3 } }
-      }
-  }
-
 \NewDocumentCommand \mmaDefineAnnotation { o m }
   {
     \IfValueTF { #1 }
@@ -176,6 +141,23 @@
       { #1 } { } { #2 } { #3 } { #4 } { #5 }
   }
 \cs_generate_variant:Nn \mmacells_define_annotation:nnnnn { nnnnV }
+
+\cs_new_protected:Npn \mmacells_define_link_annotation:nnnnnN #1#2#3#4#5#6
+  {
+    \exp_args:Nc \NewDocumentCommand { mma#1 } { s o m }
+      {
+        \IfValueTF { ##2 }
+          { #6 { ##2 } { ##3 } }
+          {
+            \IfBooleanTF { ##1 }
+              { #6 { \mmacells_lst_token: } { ##3 } }
+              { #6 { ##3 } { ##3 } }
+          }
+      }
+    
+    \mmacells_define_annotation_keys:nnnnnn
+      { #1 } { * } { #2 } { #3 } { #4 } { #5 }
+  }
 
 \cs_new_protected:Npn \mmacells_define_annotation_keys:nnnnnn #1#2#3#4#5#6
   {
@@ -309,13 +291,6 @@
     graphics  .clist_set:N = \l_mmacells_graphics_keyval_clist,
     graphics* .code:n = 
       \clist_put_right:Nn \l_mmacells_graphics_keyval_clist { #1 },
-    
-    linktarget   .meta:n = { lst* = { emph = {[5] #1 } } },
-    linktarget*  .meta:n = { lst* = { moreemph = {[5] #1 } } },
-    linklocal    .meta:n = { lst* = { emph = {[6] #1 } } },
-    linklocal*   .meta:n = { lst* = { moreemph = {[6] #1 } } },
-    linkbuiltin  .meta:n = { lst* = { emph = {[7] #1 } } },
-    linkbuiltin* .meta:n = { lst* = { moreemph = {[7] #1 } } },
     
     messagelink  .tl_set:N = \l_mmacells_message_link_tl,
     messagelinkliterate .bool_set:N = \l_mmacells_message_link_literate_bool,
@@ -454,8 +429,11 @@
   }
 
 
+\cs_new_protected:Npn \mmacells_link_target:nn #1#2
+  { \hypertarget { \mmacells_link_local_uri:n { #1 } } { #2 } }
+
 \cs_new_protected:Npn \mmacells_link_local:nn #1#2
-  {\__mmacells_link:NNnn \hyperlink \mmacells_link_local_uri:n { #1 } { #2 } }
+  { \__mmacells_link:NNnn \hyperlink \mmacells_link_local_uri:n { #1 } { #2 } }
 \cs_generate_variant:Nn \mmacells_link_local:nn { Vn }
 
 \cs_new_protected:Npn \mmacells_link_builtin:nn #1#2
@@ -508,18 +486,8 @@
   }
 
 
-\clist_set:Nn \l_mmacells_annotations_lst_keyval_clist
-  {
-    moredelim=[is][\mmaLinkTarget*]{\\mmaLinkTarget\{}{\}},
-    moredelim=[is][\mmaLinkLocal*]{\\mmaLinkLocal\{}{\}},
-    moredelim=[is][\mmaLinkBuiltin*]{\\mmaLinkBuiltin\{}{\}},
-  }
-
 \clist_set:Nn \l_mmacells_formatted_lst_keyval_clist
   {
-    morefvcmdparams=\mmaLinkTarget 1,
-    morefvcmdparams=\mmaLinkLocal 1,
-    morefvcmdparams=\mmaLinkBuiltin 1,
     morefvcmdparams=\big 1,
     morefvcmdparams=\Big 1,
     morefvcmdparams=\bigg 1,
@@ -529,6 +497,15 @@
 
 \mmacells_define_annotation:nnnnn
   { Def } { defined } { keyword } { s } { 1 }
+
+\mmacells_define_link_annotation:nnnnnN
+  { LinkTarget  } { linktarget  } { emph } { } { 1 } \mmacells_link_target:nn
+\mmacells_define_link_annotation:nnnnnN
+  { LinkLocal   } { linklocal   } { emph } { } { 2 } \mmacells_link_local:nn
+\mmacells_define_link_annotation:nnnnnN
+  { LinkBuiltin } { linkbuiltin } { emph } { } { 3 } \mmacells_link_builtin:nn
+
+\int_gset:Nn \g_mmacells_next_emph_class_int { 4 }
 
 
 \makeatother
@@ -623,9 +600,6 @@
   stringstyle=\color{mmaString},
   commentstyle=\color{mmaComment},
   identifierstyle=\mmaUnd,
-  emphstyle={[5]\mmaLinkTarget*}, % local links targets
-  emphstyle={[6]\mmaLinkLocal*}, % links to local targets
-  emphstyle={[7]\mmaLinkBuiltin*}, % links to builtin symbols
 }
 
 \mmaDefineCellStyle{Code}{
