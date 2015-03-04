@@ -160,9 +160,9 @@
   {
     \keys_define:nn { mmacells }
       {
-        #3       .meta:n = { lst* = { #4#5       = {[#6] ##1 } } },
-        more#3   .meta:n = { lst* = { more#4#5   = {[#6] ##1 } } },
-        delete#3 .meta:n = { lst* = { delete#4#5 = {[#6] ##1 } } },
+        #3       .meta:n = { morelst = { #4#5       = {[#6] ##1 } } },
+        more#3   .meta:n = { morelst = { more#4#5   = {[#6] ##1 } } },
+        delete#3 .meta:n = { morelst = { delete#4#5 = {[#6] ##1 } } },
       }
     \__mmacells_clist_put_right:Nncn
       \l_mmacells_frontendin_style_lst_keyval_clist
@@ -182,7 +182,7 @@
     \keys_define:nn { mmacells }
       {
         #1       .clist_set:c = { l_mmacells_#1_keyval_clist },
-        #1*      .code:n =
+        more#1   .code:n =
           \clist_put_right:cn   { l_mmacells_#1_keyval_clist } { ##1 },
         delete#1 .code:n =
           \clist_remove_all:cn  { l_mmacells_#1_keyval_clist } { ##1 },
@@ -291,8 +291,9 @@
     index       .code:n = \int_gset:Nn \g_mmacells_index_int { #1 - 1 },
     addtoindex  .code:n = \int_gadd:Nn \g_mmacells_index_int { #1 },
     
-    literate  .tl_set:N = \l_mmacells_lst_literate_tl,
-    literate* .code:n = \tl_put_right:Nn \l_mmacells_lst_literate_tl { ~#1 },
+    literate     .tl_set:N = \l_mmacells_lst_literate_tl,
+    moreliterate .code:n =
+      \tl_put_right:Nn \l_mmacells_lst_literate_tl { ~#1 },
     
     messagelink  .tl_set:N = \l_mmacells_message_link_tl,
     messagelinkliterate .bool_set:N = \l_mmacells_message_link_literate_bool,
@@ -640,7 +641,7 @@
   indexed,
   intype,
   annotations,
-  lst*={style=MathematicaFrontEndIn},
+  morelst={style=MathematicaFrontEndIn},
   label={In[\mmaCellIndex]:=},
 }
 \mmaDefineCellStyle{Input}{
@@ -653,18 +654,18 @@
   indexed,
   formatted,
   mathreplacements=light,
-  lst*={style=MathematicaFrontEndOut},
+  morelst={style=MathematicaFrontEndOut},
   label={Out[\mmaCellIndex]\mmaCellForm*=},
 }
 \mmaDefineCellStyle{Print}{
   style/Output,
   indexed=false,
-  fv*={formatcom*={\small}},
+  morefv={formatcom*={\small}},
   label=,
 }
 \mmaDefineCellStyle{Message}{
   style/Print,
-  lst*={
+  morelst={
     language=,
     basicstyle=\normalfont\sffamily\small\color{mmaComment},
   },
