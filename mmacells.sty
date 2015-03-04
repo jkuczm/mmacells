@@ -98,7 +98,7 @@
 
 \box_new:N \l_mmacells_label_box
 
-\dim_new:N \l_mmacells_xleftmargin_dim
+\dim_new:N \l_mmacells_leftmargin_dim
 \dim_new:N \l_mmacells_label_dim
 \dim_new:N \l_mmacells_label_sep_dim
 
@@ -282,7 +282,7 @@
     linkbuiltinuri .code:n =
       \cs_set:Npn \mmacells_link_builtin_uri:n ##1 { #1 },
     
-    xleftmargin .dim_set:N = \l_mmacells_xleftmargin_dim,
+    leftmargin  .dim_set:N = \l_mmacells_leftmargin_dim,
     labelsep    .dim_set:N = \l_mmacells_label_sep_dim,
     label       .tl_set:N = \l_mmacells_label_tl,
     form        .tl_set:N = \l_mmacells_form_tl,
@@ -337,19 +337,19 @@
     
     \mmacells_handle_index:
     
-    \dim_set_eq:NN \l_mmacells_label_dim \l_mmacells_xleftmargin_dim
+    \dim_set_eq:NN \l_mmacells_label_dim \l_mmacells_leftmargin_dim
     \dim_sub:Nn \l_mmacells_label_dim { \l_mmacells_label_sep_dim }
     
     \begin{list}{\box_use:N \l_mmacells_label_box}{
       \labelsep=\l_mmacells_label_sep_dim
-      \leftmargin=\l_mmacells_xleftmargin_dim
+      \leftmargin=\l_mmacells_leftmargin_dim
       \labelwidth=\l_mmacells_label_dim
     }
       \mmacells_set_label_boxes_and_dims:
     
       \item
       \dim_compare:nNnT
-        { \l_mmacells_label_dim } > { \l_mmacells_xleftmargin_dim }
+        { \l_mmacells_label_dim } > { \l_mmacells_leftmargin_dim }
         { \mmacells_post_wide_label: }
     
       \__mmacells_begin_verbatimenv:
@@ -568,7 +568,7 @@
     fancyvrb,
     language=[base]Mathematica,
   },
-  xleftmargin=4.8em,
+  leftmargin=4.8em,
   labelsep=.6em,
   definedstyle=\color{black},
   undefinedstyle=\color{mmaUndefined},
