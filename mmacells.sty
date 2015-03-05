@@ -107,7 +107,10 @@
 
 \bool_new:N \l_mmacells_indexed_bool
 \bool_new:N \l_mmacells_intype_bool
-\bool_new:N \l_mmacells_framed_bool
+\bool_new:N \l_mmacells_formatted_bool
+\bool_new:N \l_mmacells_annotations_bool
+\bool_new:N \l_mmacells_message_link_literate_bool
+\bool_new:N \l_mmacells_message_color_change_literate_bool
 
 \tl_new:N \l_mmacells_form_tl
 \tl_new:N \l_mmacells_label_tl
@@ -149,11 +152,73 @@
 
 \cs_new_protected_nopar:Npn \mmacells_prepare_verbatimenv:
   {
+    \bool_if:NT \l_mmacells_formatted_bool
+      {
+        \mmacells_fv_set:n
+          {
+            commandchars=\\\{\},
+            formatcom*={\everymath{\displaystyle}},
+          }
+        \mmacells_lst_set:n
+          {
+            morefvcmdparams=\mmaDef 1,
+            morefvcmdparams=\mmaUnd 1,
+            morefvcmdparams=\mmaDyn 1,
+            morefvcmdparams=\mmaLex 1,
+            morefvcmdparams=\mmaArg 1,
+            morefvcmdparams=\mmaErr 1,
+            morefvcmdparams=\mmaLinkTarget 1,
+            morefvcmdparams=\mmaLinkLocal 1,
+            morefvcmdparams=\mmaLinkBuiltin 1,
+            morefvcmdparams=\big 1,
+            morefvcmdparams=\Big 1,
+            morefvcmdparams=\bigg 1,
+            morefvcmdparams=\Bigg 1,
+          }
+      }
+
+    \bool_if:NT \l_mmacells_message_link_literate_bool
+      {
+        \tl_put_right:Nn \l_mmacells_lst_literate_tl
+          {
+            {>>}{{
+              \mmacells_link_builtin:Vn
+                \l_mmacells_message_link_tl
+                { \raisebox{0.2ex}{$\scriptstyle\pmb{\gg}$} }
+            }}1
+          }
+      }
+    \bool_if:NT \l_mmacells_message_color_change_literate_bool
+      {
+        \tl_put_right:Nn \l_mmacells_lst_literate_tl
+          {
+            {:\ }{{
+              \__mmacells_group_insetr_after:n { \color{mmaMessage}:\  }
+            }}1
+          }
+      }
+    
     \mmacells_fv_set:n { formatcom* = \__mmacells_fix_labels: }
     \mmacells_fv_set:V \l_mmacells_fv_keyval_clist
 
     \mmacells_lst_set_literate:V \l_mmacells_lst_literate_tl
     \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
+    
+    \bool_if:NT \l_mmacells_annotations_bool
+      {
+        \mmacells_lst_set:n
+          {
+            moredelim=[is][\mmaDef]{\\mmaDef\{}{\}},
+            moredelim=[is][\mmaUnd]{\\mmaUnd\{}{\}},
+            moredelim=[is][\mmaDyn]{\\mmaDyn\{}{\}},
+            moredelim=[is][\mmaLex]{\\mmaLex\{}{\}},
+            moredelim=[is][\mmaArg]{\\mmaArg\{}{\}},
+            moredelim=[is][\mmaErr]{\\mmaErr\{}{\}},
+            moredelim=[is][\mmaLinkTarget*]{\\mmaLinkTarget\{}{\}},
+            moredelim=[is][\mmaLinkLocal*]{\\mmaLinkLocal\{}{\}},
+            moredelim=[is][\mmaLinkBuiltin*]{\\mmaLinkBuiltin\{}{\}},
+          }
+      }
 
     \VerbatimEnvironment
   }
@@ -240,54 +305,13 @@
     linkbuiltin* .meta:n = { lst* = { moreemph = {[7] #1 } } },
     
     messagelink  .tl_set:N = \l_mmacells_message_link_tl,
-    messagelinkliterate .meta:n = {
-      literate* =
-        {>>}{{
-          \mmacells_link_builtin:Vn
-            \l_mmacells_message_link_tl
-            {\raisebox{0.2ex}{$\scriptstyle\pmb{\gg}$}}
-        }}1,
-    },
-    messagecolorchangeliterate .meta:n = {
-      literate* = {:\ }{{
-        \__mmacells_group_insetr_after:n { \color{mmaMessage}:\  }
-      }}1,
-    },
+    messagelinkliterate .bool_set:N = \l_mmacells_message_link_literate_bool,
+    messagecolorchangeliterate .bool_set:N =
+      \l_mmacells_message_color_change_literate_bool,
     
-    formatted .meta:n = {
-      fv* = {
-        commandchars=\\\{\},
-        formatcom*={\everymath{\displaystyle}},
-      },
-      lst* = {
-        morefvcmdparams=\mmaDef 1,
-        morefvcmdparams=\mmaUnd 1,
-        morefvcmdparams=\mmaDyn 1,
-        morefvcmdparams=\mmaLex 1,
-        morefvcmdparams=\mmaArg 1,
-        morefvcmdparams=\mmaErr 1,
-        morefvcmdparams=\mmaLinkTarget 1,
-        morefvcmdparams=\mmaLinkLocal 1,
-        morefvcmdparams=\mmaLinkBuiltin 1,
-        morefvcmdparams=\big 1,
-        morefvcmdparams=\Big 1,
-        morefvcmdparams=\bigg 1,
-        morefvcmdparams=\Bigg 1,
-      }
-    },
-    annotations .meta:n = {
-      lst* = {
-        moredelim=[is][\mmaDef]{\\mmaDef\{}{\}},
-        moredelim=[is][\mmaUnd]{\\mmaUnd\{}{\}},
-        moredelim=[is][\mmaDyn]{\\mmaDyn\{}{\}},
-        moredelim=[is][\mmaLex]{\\mmaLex\{}{\}},
-        moredelim=[is][\mmaArg]{\\mmaArg\{}{\}},
-        moredelim=[is][\mmaErr]{\\mmaErr\{}{\}},
-        moredelim=[is][\mmaLinkTarget*]{\\mmaLinkTarget\{}{\}},
-        moredelim=[is][\mmaLinkLocal*]{\\mmaLinkLocal\{}{\}},
-        moredelim=[is][\mmaLinkBuiltin*]{\\mmaLinkBuiltin\{}{\}},
-      }
-    },
+    formatted   .bool_set:N = \l_mmacells_formatted_bool,
+    annotations .bool_set:N = \l_mmacells_annotations_bool,
+    
     mathreplacements .code:n =
       \tl_put_right:NV
         \l_mmacells_lst_literate_tl \l__mmacells_math_replacements_tl,
