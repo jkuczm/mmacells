@@ -19,6 +19,7 @@
 \RequirePackage{amsmath,bbm}
 \RequirePackage{xcolor}
 \RequirePackage{fancyvrb,listings}
+\RequirePackage{graphicx}
 \RequirePackage{hyperref}
 
 
@@ -41,6 +42,9 @@
       { \tl_if_empty:VF \l_mmacells_form_tl { // } }
     \tl_use:N \l_mmacells_form_tl
   }
+
+\NewDocumentCommand \mmaGraphics { O{} m }
+  { \mmacells_graphics:nn { #1 } { #2 } }
 
 
 \NewDocumentCommand \mmaDefineAnnotation { o m }
@@ -91,6 +95,8 @@
 \tl_new:N \l_mmacells_label_tl
 \tl_new:N \l_mmacells_lst_literate_tl
 \tl_new:N \l_mmacells_message_link_tl
+\tl_new:N \l_mmacells_pole_one_tl
+\tl_new:N \l_mmacells_pole_two_tl
 
 \clist_new:N \l_mmacells_annotations_lst_keyval_clist
 \clist_new:N \l_mmacells_formatted_lst_keyval_clist
@@ -101,6 +107,8 @@
 \dim_new:N \l_mmacells_leftmargin_dim
 \dim_new:N \l_mmacells_label_dim
 \dim_new:N \l_mmacells_label_sep_dim
+\dim_new:N \l_mmacells_x_offset_dim
+\dim_new:N \l_mmacells_y_offset_dim
 
 \cs_new_nopar:Npn \mmacells_begin_verbatimenv: { }
 \cs_new_nopar:Npn \mmacells_end_verbatimenv: { }
@@ -120,6 +128,9 @@
 \cs_new_nopar:Npn \__mmacells_begin_verbatimenv: { }
 \cs_new_nopar:Npn \__mmacells_end_verbatimenv: { }
 \cs_set_nopar:Npn \__mmacells_add_math_replacements: { }
+
+
+\cs_generate_variant:Nn \coffin_typeset:Nnnnn { NVVVV }
 
 
 \cs_new_protected:Npn \mmacells_define_annotation:nnnnn #1#2#3#4#5
@@ -320,10 +331,24 @@
       \cs_set_nopar:Npn \__mmacells_add_math_replacements: { },
     
     style .choice:,
+    
+    pole1   .tl_set:N  = \l_mmacells_pole_one_tl,
+    pole1   .initial:n = l,
+    
+    pole2   .tl_set:N  = \l_mmacells_pole_two_tl,
+    pole2   .initial:n = vc,
+    
+    xoffset .dim_set:N = \l_mmacells_x_offset_dim,
+    xoffset .initial:n = 0pt,
+    
+    yoffset .dim_set:N = \l_mmacells_y_offset_dim,
+    yoffset .initial:n = 0pt,
   }
 
 \mmacells_define_transfer_keys:n { fv }
 \mmacells_define_transfer_keys:n { lst }
+\mmacells_define_transfer_keys:n { ig }
+\mmacells_define_transfer_keys:n { cellgraphics }
 \mmacells_define_transfer_keys:n { graphics }
 
 \cs_new_protected:Npn \mmacells_define_style:nn #1#2
@@ -363,12 +388,21 @@
 \cs_new_protected:Npn \mmacells_cell_graphics:nnn #1#2#3
   {
     \group_begin:
-    \mmacells_begin_cell:nn
-      { verbatimenv=, postwidelabel=\leavevmode\\, #1 }
-      { #2 }
-    \mmacells_includegraphics:Vn \l_mmacells_graphics_keyval_clist { #3 }
+    
+    \keys_set:nV { mmacells } \l_mmacells_cellgraphics_keyval_clist
+    
+    \mmacells_begin_cell:nn { #1 } { #2 }
+    \mmacells_includegraphics_coffin:n { #3 }
     \mmacells_end_cell:
+    
     \group_end:
+  }
+
+\cs_new_protected:Npn \mmacells_graphics:nn #1#2
+  {
+    \keys_set:nV { mmacells } \l_mmacells_graphics_keyval_clist
+    \keys_set:nn { mmacells } { #1 }
+    \mmacells_includegraphics_coffin:n { #2 }
   }
 
 \cs_new_protected_nopar:Npn \mmacells_handle_index:
@@ -421,6 +455,17 @@
 
 \cs_new_eq:NN \mmacells_lst_define_style:nn \lstdefinestyle
 \cs_generate_variant:Nn \mmacells_lst_define_style:nn { nV }
+
+\cs_new:Npn \mmacells_includegraphics_coffin:n #1
+  {
+    \hcoffin_set:Nn \l_tmpa_coffin
+      { \mmacells_includegraphics:Vn \l_mmacells_ig_keyval_clist { #1 } }
+    \coffin_typeset:NVVVV \l_tmpa_coffin
+      \l_mmacells_pole_one_tl
+      \l_mmacells_pole_two_tl
+      \l_mmacells_x_offset_dim
+      \l_mmacells_y_offset_dim
+  }
 
 \cs_new:Npn \mmacells_includegraphics:nn #1#2
   { \includegraphics [ #1 ] { #2 } }
@@ -495,6 +540,7 @@
 
 \clist_set:Nn \l_mmacells_formatted_lst_keyval_clist
   {
+    morefvcmdparams=\mmaGraphics 1,
     morefvcmdparams=\big 1,
     morefvcmdparams=\Big 1,
     morefvcmdparams=\bigg 1,
@@ -591,6 +637,11 @@
   labelstyle=\normalfont\color{mmaLabel}\sffamily\scriptsize,
   linkstyle=\color{mmaLink},
   linkbuiltinuri=http://reference.wolfram.com/language/ref/#1.html,
+  cellgraphics={
+    verbatimenv=,
+    postwidelabel=\leavevmode\\,
+    pole2=t,
+  },
 }
 
 \definecolor{mmaLabel}{RGB}{70,70,153}
