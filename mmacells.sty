@@ -293,6 +293,7 @@
     intype      .bool_set:N = \l_mmacells_intype_bool,
     indexed     .bool_set:N = \l_mmacells_indexed_bool,
     index       .code:n = \int_gset:Nn \g_mmacells_index_int { #1 - 1 },
+    addtoindex  .code:n = \int_gadd:Nn \g_mmacells_index_int { #1 },
     
     fv   .clist_set:N = \l_mmacells_fv_keyval_clist,
     fv*  .code:n = \clist_put_right:Nn \l_mmacells_fv_keyval_clist { #1 },
