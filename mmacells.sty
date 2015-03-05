@@ -42,53 +42,27 @@
     \tl_use:N \l_mmacells_form_tl
   }
 
-\NewDocumentCommand \mmaDef { m }
-  { \mmacells_typeset_formatted:Nn \mmacells_format_defined:n { #1 } }
-\NewDocumentCommand \mmaUnd { m }
-  { \mmacells_typeset_formatted:Nn \mmacells_format_undefined:n { #1 } }
-\NewDocumentCommand \mmaDyn { m }
-  { \mmacells_typeset_formatted:Nn \mmacells_format_dynamic:n { #1 } }
-\NewDocumentCommand \mmaLex { m }
-  { \mmacells_typeset_formatted:Nn \mmacells_format_lexical:n { #1 } }
-\NewDocumentCommand \mmaArg { m }
-  { \mmacells_typeset_formatted:Nn \mmacells_format_argument:n { #1 } }
-\NewDocumentCommand \mmaErr { m }
-  { \mmacells_typeset_formatted:Nn \mmacells_format_error:n { #1 } }
 
+\NewDocumentCommand \mmaDefineAnnotation { o m }
+  {
+    \IfValueTF { #1 }
+      {
+        \mmacells_define_annotation:nnnnV
+          { #1 } { #2 } { emph } { } \g_mmacells_next_emph_class_int
+      }
+      {
+        \mmacells_define_annotation:nnnnV
+          { #2 } { #2 } { emph } { } \g_mmacells_next_emph_class_int
+      }
+    \int_gincr:N \g_mmacells_next_emph_class_int
+  }
 
-\NewDocumentCommand \mmaLinkTarget { s o m }
+\NewDocumentCommand \mmaDefineFrontEndInStyle { O{MathematicaFrontEndIn} m }
   {
-    \IfValueTF { #2 }
-      { \hypertarget { \mmacells_link_local_uri:n { #2 } } { #3 } }
-      {
-        \IfBooleanTF { #1 }
-          {
-            \hypertarget
-              { \mmacells_link_local_uri:n { \mmacells_lst_token: } }
-              { #3 }
-          }
-          { \hypertarget{ \mmacells_link_local_uri:n { #3 } }{ #3 } }
-      }
-  }
-\NewDocumentCommand \mmaLinkLocal { s o m }
-  {
-    \IfValueTF { #2 }
-      { \mmacells_link_local:nn { #2 } { #3 } }
-      {
-        \IfBooleanTF { #1 }
-          { \mmacells_link_local:nn { \mmacells_lst_token: } { #3 } }
-          { \mmacells_link_local:nn { #3 } { #3 } }
-      }
-  }
-\NewDocumentCommand \mmaLinkBuiltin { s o m }
-  {
-    \IfValueTF { #2 }
-      { \mmacells_link_builtin:nn { #2 } { #3 } }
-      {
-        \IfBooleanTF { #1 }
-          { \mmacells_link_builtin:nn { \mmacells_lst_token: } { #3 } }
-          { \mmacells_link_builtin:nn { #3 } { #3 } }
-      }
+    \clist_put_right:Nn \l_mmacells_frontendin_style_lst_keyval_clist { #2 }
+    
+    \mmacells_lst_define_style:nV { #1 }
+      \l_mmacells_frontendin_style_lst_keyval_clist
   }
 
 \NewDocumentCommand \mmaDefineCellStyle { m m }
@@ -103,6 +77,7 @@
 
 
 \int_new:N \g_mmacells_index_int
+\int_new:N \g_mmacells_next_emph_class_int
 \bool_new:N \g_mmacells_previous_intype_bool
 
 \bool_new:N \l_mmacells_indexed_bool
@@ -120,6 +95,9 @@
 \clist_new:N \l_mmacells_lst_keyval_clist
 \clist_new:N \l_mmacells_fv_keyval_clist
 \clist_new:N \l_mmacells_graphics_keyval_clist
+\clist_new:N \l_mmacells_annotations_lst_keyval_clist
+\clist_new:N \l_mmacells_formatted_lst_keyval_clist
+\clist_new:N \l_mmacells_frontendin_style_lst_keyval_clist
 
 \box_new:N \l_mmacells_label_box
 
@@ -132,12 +110,6 @@
 \cs_new_nopar:Npn \mmacells_post_wide_label: { }
 
 \cs_new:Npn \mmacells_format_line_wrapper:n #1 { #1 }
-\cs_new:Npn \mmacells_format_defined:n #1 { #1 }
-\cs_new:Npn \mmacells_format_undefined:n #1 { #1 }
-\cs_new:Npn \mmacells_format_dynamic:n #1 { #1 }
-\cs_new:Npn \mmacells_format_lexical:n #1 { #1 }
-\cs_new:Npn \mmacells_format_argument:n #1 { #1 }
-\cs_new:Npn \mmacells_format_error:n #1 { #1 }
 \cs_new:Npn \mmacells_format_label:n #1 { #1 }
 \cs_new:Npn \mmacells_format_link:n #1 { #1 }
 
@@ -152,6 +124,61 @@
 \cs_new_nopar:Npn \__mmacells_end_verbatimenv: { }
 \cs_set_nopar:Npn \__mmacells_add_math_replacements: { }
 
+
+\cs_new_protected:Npn \mmacells_define_annotation:nnnnn #1#2#3#4#5
+  {
+    \exp_args:Nc \NewDocumentCommand { mma#1 } { m }
+      { \mmacells_typeset_formatted:cn { mmacells_format_#2:n } { ##1 } }
+    
+    \cs_new:cpn { mmacells_format_#2:n } ##1 { ##1 }
+    
+    \keys_define:nn { mmacells }
+      {
+        #2style .code:n = \mmacells_set_formatting_function:nn { #2 } { ##1 },
+      }
+    
+    \mmacells_define_annotation_keys:nnnnnn
+      { #1 } { } { #2 } { #3 } { #4 } { #5 }
+  }
+\cs_generate_variant:Nn \mmacells_define_annotation:nnnnn { nnnnV }
+
+\cs_new_protected:Npn \mmacells_define_link_annotation:nnnnnN #1#2#3#4#5#6
+  {
+    \exp_args:Nc \NewDocumentCommand { mma#1 } { s o m }
+      {
+        \IfValueTF { ##2 }
+          { #6 { ##2 } { ##3 } }
+          {
+            \IfBooleanTF { ##1 }
+              { #6 { \mmacells_lst_token: } { ##3 } }
+              { #6 { ##3 } { ##3 } }
+          }
+      }
+    
+    \mmacells_define_annotation_keys:nnnnnn
+      { #1 } { * } { #2 } { #3 } { #4 } { #5 }
+  }
+
+\cs_new_protected:Npn \mmacells_define_annotation_keys:nnnnnn #1#2#3#4#5#6
+  {
+    \keys_define:nn { mmacells }
+      {
+        #3       .meta:n = { lst* = { #4#5       = {[#6] ##1 } } },
+        more#3   .meta:n = { lst* = { more#4#5   = {[#6] ##1 } } },
+        delete#3 .meta:n = { lst* = { delete#4#5 = {[#6] ##1 } } },
+      }
+    \__mmacells_clist_put_right:Nncn
+      \l_mmacells_frontendin_style_lst_keyval_clist
+      { #4style=[#6] } { mma#1 } { #2 }
+    
+    \__mmacells_clist_put_right:Nncn \l_mmacells_annotations_lst_keyval_clist
+      { moredelim=[is][ } { mma#1 } { #2]{\\mma#1\{}{\}} }
+    
+    \__mmacells_clist_put_right:Nncn \l_mmacells_formatted_lst_keyval_clist
+      { morefvcmdparams= } { mma#1 } { 1 }
+  }
+
+
 \cs_new_protected_nopar:Npn \mmacells_prepare_verbatimenv:
   {
     \bool_if:NT \l_mmacells_formatted_bool
@@ -161,22 +188,7 @@
             commandchars=\\\{\},
             formatcom*={\everymath{\displaystyle}},
           }
-        \mmacells_lst_set:n
-          {
-            morefvcmdparams=\mmaDef 1,
-            morefvcmdparams=\mmaUnd 1,
-            morefvcmdparams=\mmaDyn 1,
-            morefvcmdparams=\mmaLex 1,
-            morefvcmdparams=\mmaArg 1,
-            morefvcmdparams=\mmaErr 1,
-            morefvcmdparams=\mmaLinkTarget 1,
-            morefvcmdparams=\mmaLinkLocal 1,
-            morefvcmdparams=\mmaLinkBuiltin 1,
-            morefvcmdparams=\big 1,
-            morefvcmdparams=\Big 1,
-            morefvcmdparams=\bigg 1,
-            morefvcmdparams=\Bigg 1,
-          }
+        \mmacells_lst_set:V \l_mmacells_formatted_lst_keyval_clist
       }
 
     \bool_if:NT \l_mmacells_message_link_literate_bool
@@ -219,22 +231,9 @@
     \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
     
     \bool_if:NT \l_mmacells_annotations_bool
-      {
-        \mmacells_lst_set:n
-          {
-            moredelim=[is][\mmaDef]{\\mmaDef\{}{\}},
-            moredelim=[is][\mmaUnd]{\\mmaUnd\{}{\}},
-            moredelim=[is][\mmaDyn]{\\mmaDyn\{}{\}},
-            moredelim=[is][\mmaLex]{\\mmaLex\{}{\}},
-            moredelim=[is][\mmaArg]{\\mmaArg\{}{\}},
-            moredelim=[is][\mmaErr]{\\mmaErr\{}{\}},
-            moredelim=[is][\mmaLinkTarget*]{\\mmaLinkTarget\{}{\}},
-            moredelim=[is][\mmaLinkLocal*]{\\mmaLinkLocal\{}{\}},
-            moredelim=[is][\mmaLinkBuiltin*]{\\mmaLinkBuiltin\{}{\}},
-          }
-      }
+      { \mmacells_lst_set:V \l_mmacells_annotations_lst_keyval_clist }
               
-      \__mmacells_wrap_fv_formatline:n { \mmacells_format_line_wrapper:n }
+    \__mmacells_wrap_fv_formatline:n { \mmacells_format_line_wrapper:n }
 
     \VerbatimEnvironment
   }
@@ -262,24 +261,10 @@
     postwidelabel .initial:n = { \leavevmode \@nobreaktrue \parskip=0pt },
     
     formatline .code:n =
-      \cs_set:Npn \mmacells_format_line_wrapper:n ##1 { #1 { ##1 } },
+      \mmacells_set_formatting_function:nn { line_wrapper } { #1 },
     
-    definedstyle   .code:n =
-      \cs_set:Npn \mmacells_format_defined:n ##1 { #1 { ##1 } },
-    undefinedstyle .code:n =
-      \cs_set:Npn \mmacells_format_undefined:n ##1 { #1 { ##1 } },
-    dynamicstyle   .code:n =
-      \cs_set:Npn \mmacells_format_dynamic:n ##1 { #1 { ##1 } },
-    lexicalstyle   .code:n =
-      \cs_set:Npn \mmacells_format_lexical:n ##1 { #1 { ##1 } },
-    argumentstyle  .code:n =
-      \cs_set:Npn \mmacells_format_argument:n ##1 { #1 { ##1 } },
-    errorstyle  .code:n =
-      \cs_set:Npn \mmacells_format_error:n ##1 { #1 { ##1 } },
-    labelstyle     .code:n =
-      \cs_set:Npn \mmacells_format_label:n ##1 { #1 { ##1 } },
-    linkstyle     .code:n =
-      \cs_set:Npn \mmacells_format_link:n ##1 { #1 { ##1 } },
+    labelstyle .code:n = \mmacells_set_formatting_function:nn { label } { #1 },
+    linkstyle  .code:n = \mmacells_set_formatting_function:nn { link } { #1 },
     
     linklocaluri .code:n =
       \cs_set:Npn \mmacells_link_local_uri:n ##1 { #1 },
@@ -305,24 +290,6 @@
     graphics  .clist_set:N = \l_mmacells_graphics_keyval_clist,
     graphics* .code:n = 
       \clist_put_right:Nn \l_mmacells_graphics_keyval_clist { #1 },
-    
-    defined      .meta:n = { lst* = { keywords = { #1 } } },
-    defined*     .meta:n = { lst* = { morekeywords = { #1 } } },
-    undefined    .meta:n = { lst* = { deletekeywords = { #1 } } },
-    dynamic      .meta:n = { lst* = { emph = {[1] #1 } } },
-    dynamic*     .meta:n = { lst* = { moreemph = {[1] #1 } } },
-    lexical      .meta:n = { lst* = { emph = {[2] #1 } } },
-    lexical*     .meta:n = { lst* = { moreemph = {[2] #1 } } },
-    argument     .meta:n = { lst* = { emph = {[3] #1 } } },
-    argument*    .meta:n = { lst* = { moreemph = {[3] #1 } } },
-    error        .meta:n = { lst* = { emph = {[4] #1 } } },
-    error*       .meta:n = { lst* = { moreemph = {[4] #1 } } },
-    linktarget   .meta:n = { lst* = { emph = {[5] #1 } } },
-    linktarget*  .meta:n = { lst* = { moreemph = {[5] #1 } } },
-    linklocal    .meta:n = { lst* = { emph = {[6] #1 } } },
-    linklocal*   .meta:n = { lst* = { moreemph = {[6] #1 } } },
-    linkbuiltin  .meta:n = { lst* = { emph = {[7] #1 } } },
-    linkbuiltin* .meta:n = { lst* = { moreemph = {[7] #1 } } },
     
     messagelink  .tl_set:N = \l_mmacells_message_link_tl,
     messagelinkliterate .bool_set:N = \l_mmacells_message_link_literate_bool,
@@ -429,7 +396,10 @@
     #1 { #2 }
     \group_end:
   }
-\cs_generate_variant:Nn \mmacells_typeset_formatted:Nn { NV }
+\cs_generate_variant:Nn \mmacells_typeset_formatted:Nn { NV , cn }
+
+\cs_new_protected:Npn \mmacells_set_formatting_function:nn #1#2
+  { \cs_set:cpn { mmacells_format_#1:n } ##1 { #2 { ##1 } } }
 
 \cs_new_eq:NN \mmacells_fv_set:n \fvset
 \cs_generate_variant:Nn \mmacells_fv_set:n { V }
@@ -440,6 +410,9 @@
 \cs_new_protected:Npn \mmacells_lst_set_literate:n #1
   { \mmacells_lst_set:n { literate = { #1 } } }
 \cs_generate_variant:Nn \mmacells_lst_set_literate:n { V }
+
+\cs_new_eq:NN \mmacells_lst_define_style:nn \lstdefinestyle
+\cs_generate_variant:Nn \mmacells_lst_define_style:nn { nV }
 
 \cs_new:Npn \mmacells_includegraphics:nn #1#2
   { \includegraphics [ #1 ] { #2 } }
@@ -455,8 +428,11 @@
   }
 
 
+\cs_new_protected:Npn \mmacells_link_target:nn #1#2
+  { \hypertarget { \mmacells_link_local_uri:n { #1 } } { #2 } }
+
 \cs_new_protected:Npn \mmacells_link_local:nn #1#2
-  {\__mmacells_link:NNnn \hyperlink \mmacells_link_local_uri:n { #1 } { #2 } }
+  { \__mmacells_link:NNnn \hyperlink \mmacells_link_local_uri:n { #1 } { #2 } }
 \cs_generate_variant:Nn \mmacells_link_local:nn { Vn }
 
 \cs_new_protected:Npn \mmacells_link_builtin:nn #1#2
@@ -500,6 +476,37 @@
     \cs_set_eq:NN \lstFV@FancyVerbFormatLine \FancyVerbFormatLine
   }
 
+\cs_new_protected:Npn \__mmacells_clist_put_right:Nncn #1#2#3#4
+  {
+    \tl_set:Nn \l_tmpa_tl { #2 }
+    \exp_args:NNc \tl_put_right:Nn \l_tmpa_tl { #3 }
+    \tl_put_right:Nn \l_tmpa_tl { #4 }
+    \clist_put_right:NV #1 \l_tmpa_tl
+  }
+
+
+\clist_set:Nn \l_mmacells_formatted_lst_keyval_clist
+  {
+    morefvcmdparams=\big 1,
+    morefvcmdparams=\Big 1,
+    morefvcmdparams=\bigg 1,
+    morefvcmdparams=\Bigg 1,
+  }
+
+
+\mmacells_define_annotation:nnnnn
+  { Def } { defined } { keyword } { s } { 1 }
+
+\mmacells_define_link_annotation:nnnnnN
+  { LnT } { linktarget  } { emph } { } { 1 } \mmacells_link_target:nn
+\mmacells_define_link_annotation:nnnnnN
+  { LnL } { linklocal   } { emph } { } { 2 } \mmacells_link_local:nn
+\mmacells_define_link_annotation:nnnnnN
+  { LnB } { linkbuiltin } { emph } { } { 3 } \mmacells_link_builtin:nn
+
+\int_gset:Nn \g_mmacells_next_emph_class_int { 4 }
+
+
 \makeatother
 \ExplSyntaxOff
 
@@ -528,6 +535,14 @@
 \NewDocumentCommand \mmaSqrt { m } {\ensuremath{\sqrt{#1}}}
 % RadicalBox
 \NewDocumentCommand \mmaRadical { m m } {\ensuremath{\sqrt[\text{#2}]{#1}}}
+
+
+\mmaDefineAnnotation[Und]{undefined}
+\mmaDefineAnnotation[Dyn]{dynamic}
+\mmaDefineAnnotation[Lex]{lexical}
+\mmaDefineAnnotation[Arg]{argument}
+\mmaDefineAnnotation[Err]{error}
+
 
 \mmaSet{
   lst={
@@ -578,20 +593,12 @@
   identifierstyle=,
   emphstyle=,
 }
-\lstdefinestyle{MathematicaFrontEndIn}{
+\mmaDefineFrontEndInStyle{
   style=MathematicaFrontEnd,
   basicstyle=\normalfont\color{black}\ttfamily\bfseries,
-  keywordstyle=\mmaDef,
   stringstyle=\color{mmaString},
   commentstyle=\color{mmaComment},
   identifierstyle=\mmaUnd,
-  emphstyle={[1]\mmaDyn},% Block, Table, ...
-  emphstyle={[2]\mmaLex}, % Module, With
-  emphstyle={[3]\mmaArg}, % arguments in functions and rules
-  emphstyle={[4]\mmaErr}, % errors
-  emphstyle={[5]\mmaLinkTarget*}, % local links targets
-  emphstyle={[6]\mmaLinkLocal*}, % links to local targets
-  emphstyle={[7]\mmaLinkBuiltin*}, % links to builtin symbols
 }
 
 \mmaDefineCellStyle{Code}{
