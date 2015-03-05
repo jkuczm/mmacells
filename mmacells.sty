@@ -13,7 +13,7 @@
 
 \RequirePackage{expl3,xparse}
 
-\ProvidesExplPackage {mmacells} {2015/02/04} {0.0.1}
+\ProvidesExplPackage {mmacells} {2015/03/05} {0.1.0}
   {Mathematica front end cells}
 
 \RequirePackage{amsmath,bbm}
@@ -110,8 +110,6 @@
 \dim_new:N \l_mmacells_x_offset_dim
 \dim_new:N \l_mmacells_y_offset_dim
 
-\cs_new_nopar:Npn \mmacells_begin_verbatimenv: { }
-\cs_new_nopar:Npn \mmacells_end_verbatimenv: { }
 \cs_new_nopar:Npn \mmacells_post_wide_label: { }
 
 \cs_new:Npn \mmacells_format_line_wrapper:n #1 { #1 }
@@ -486,7 +484,6 @@
 
 \cs_new_protected:Npn \mmacells_link_local:nn #1#2
   { \__mmacells_link:NNnn \hyperlink \mmacells_link_local_uri:n { #1 } { #2 } }
-\cs_generate_variant:Nn \mmacells_link_local:nn { Vn }
 
 \cs_new_protected:Npn \mmacells_link_builtin:nn #1#2
   { \__mmacells_link:NNnn \href \mmacells_link_builtin_uri:n { #1 } { #2 } }
@@ -568,7 +565,7 @@
 % Analogs of common Mathematica formatting boxes.
 % 
 % Using \text inside math commands that rescale arguments, since otherwise code
-% fragments processed with listings are not properly scaled in nested connands.
+% fragments processed with listings are not properly scaled in nested commands.
 
 % SubscriptBox
 \NewDocumentCommand \mmaSup { m m } {\ensuremath{#1^\text{#2}}}
