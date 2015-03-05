@@ -538,11 +538,22 @@
 
 
 \mmaDefineAnnotation[Und]{undefined}
-\mmaDefineAnnotation[Dyn]{dynamic}
-\mmaDefineAnnotation[Lex]{lexical}
-\mmaDefineAnnotation[Arg]{argument}
-\mmaDefineAnnotation[Err]{error}
+\mmaDefineAnnotation[Fnc]{functionlocal}
+\mmaDefineAnnotation[Loc]{local}
+\mmaDefineAnnotation[Pat]{pattern}
+\mmaDefineAnnotation[LCn]{localconflict}
+\mmaDefineAnnotation[GCn]{globalconflict}
+\mmaDefineAnnotation[Exc]{excessargument}
+\mmaDefineAnnotation[Opt]{unknownoption}
+\mmaDefineAnnotation[Asg]{unwantedassignment}
+\mmaDefineAnnotation[Shd]{shadowing}
+\mmaDefineAnnotation[Snt]{syntaxerror}
+\mmaDefineAnnotation[Emp]{emphasizedsyntaxerror}
+\mmaDefineAnnotation[Fmt]{formattingerror}
 
+
+\NewDocumentCommand \mmaHl { m m }
+  {{\fboxsep0pt\colorbox{#1}{\strut #2}}}
 
 \mmaSet{
   lst={
@@ -553,10 +564,22 @@
   labelsep=.6em,
   definedstyle=\color{black},
   undefinedstyle=\color{mmaUndefined},
-  dynamicstyle=\color{mmaDynamic},
-  lexicalstyle=\color{mmaLexical},
-  argumentstyle=\color{mmaLexical}\slshape, % or \itshape if supported
-  errorstyle=\color{mmaError},
+  functionlocalstyle=\color{mmaFunctionLocal},
+  localstyle=\color{mmaLocal},
+  patternstyle=\color{mmaLocal}\slshape, % or \itshape if supported
+  localconflictstyle=\color{mmaEmphasizedError},
+  globalconflictstyle=\color{mmaEmphasizedError},
+  excessargumentstyle=\color{mmaError},
+  unknownoptionstyle=\color{mmaError},
+  unwantedassignmentstyle=\color{mmaError},
+  shadowingstyle=\color{mmaError},
+  syntaxerrorstyle=\color{mmaSyntaxError},
+  emphasizedsyntaxerrorstyle={%
+    \color{mmaEmphasizedError}\mmaHl{mmaEmphasizedErrorBackground}%
+  },
+  formattingerrorstyle={%
+    \fboxsep0.3em\fcolorbox{mmaFormattingError}{mmaFormattingErrorBackground}%
+  },
   labelstyle=\normalfont\color{mmaLabel}\sffamily\scriptsize,
   linkstyle=\color{mmaLink},
   linkbuiltinuri=http://reference.wolfram.com/language/ref/#1.html,
@@ -565,10 +588,15 @@
 \definecolor{mmaLabel}{RGB}{70,70,153}
 \definecolor{mmaLink}{RGB}{20,40,153}
 \definecolor{mmaUndefined}{RGB}{0,44,195}
-\definecolor{mmaDynamic}{RGB}{60,125,145}
-\definecolor{mmaLexical}{RGB}{67,137,88}
+\definecolor{mmaFunctionLocal}{RGB}{60,125,145}
+\definecolor{mmaLocal}{RGB}{67,137,88}
 \definecolor{mmaMessage}{RGB}{129,43,38}
 \definecolor{mmaError}{RGB}{255,51,51}
+\definecolor{mmaSyntaxError}{RGB}{194,85,204}
+\definecolor{mmaEmphasizedError}{RGB}{204,0,0}
+\definecolor{mmaEmphasizedErrorBackground}{RGB}{255,225,130}
+\definecolor{mmaFormattingError}{RGB}{255,85,85}
+\definecolor{mmaFormattingErrorBackground}{RGB}{255,230,230}
 \definecolor{mmaString}{gray}{.4}
 \definecolor{mmaComment}{gray}{.6}
 
