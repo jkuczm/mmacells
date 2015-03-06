@@ -13,7 +13,7 @@
 
 \RequirePackage{expl3,xparse}
 
-\ProvidesExplPackage {mmacells} {2015/03/05} {0.1.0}
+\ProvidesExplPackage {mmacells} {2015/03/06} {0.1.1}
   {Mathematica front end cells}
 
 \RequirePackage{amsmath,bbm}
@@ -662,7 +662,7 @@
   deletekeywords=[2]$, % $ is not a keyword.
   morekeywords={@,_},
   keywordsprefix=_, % Blank... patterns with head
-}
+}[keywords,comments,strings,fancyvrb]
 \lstdefinestyle{MathematicaFrontEnd}{
   showstringspaces=false,
   columns=fullflexible,
