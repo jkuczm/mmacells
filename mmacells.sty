@@ -200,16 +200,19 @@
   }
 
 
-\cs_new_protected_nopar:Npn \mmacells_prepare_verbatimenv:
+\cs_new_protected_nopar:Npn \__mmacells_prepare_verbatim_keyval:
   {
     \bool_if:NT \l_mmacells_formatted_bool
       {
-        \mmacells_fv_set:n
+        \clist_put_left:Nn
+          \l_mmacells_fv_keyval_clist
           {
             commandchars=\\\{\},
             formatcom*={\everymath{\displaystyle}},
           }
-        \mmacells_lst_set:V \l_mmacells_formatted_lst_keyval_clist
+        \clist_put_left:NV
+          \l_mmacells_lst_keyval_clist
+          \l_mmacells_formatted_lst_keyval_clist
       }
 
     \bool_if:NT \l_mmacells_message_link_literate_bool
@@ -245,14 +248,26 @@
     
     \__mmacells_add_math_replacements:
     
-    \mmacells_fv_set:n { formatcom* = \__mmacells_fix_labels: }
-    \mmacells_fv_set:V \l_mmacells_fv_keyval_clist
-
-    \mmacells_lst_set_literate:V \l_mmacells_lst_literate_tl
-    \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
+    \tl_set_eq:NN \l_tmpa_tl \l_mmacells_lst_literate_tl
+    \tl_put_left:Nn \l_tmpa_tl { literate = }
+    \clist_put_left:NV \l_mmacells_lst_keyval_clist \l_tmpa_tl
     
     \bool_if:NT \l_mmacells_annotations_bool
-      { \mmacells_lst_set:V \l_mmacells_annotations_lst_keyval_clist }
+      {
+        \clist_put_right:NV
+          \l_mmacells_lst_keyval_clist
+          \l_mmacells_annotations_lst_keyval_clist
+      }
+  }
+
+\cs_new_protected_nopar:Npn \mmacells_prepare_verbatimenv:
+  {
+    \__mmacells_prepare_verbatim_keyval:
+
+    \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
+
+    \mmacells_fv_set:n { formatcom* = \__mmacells_fix_labels: }
+    \mmacells_fv_set:V \l_mmacells_fv_keyval_clist
               
     \__mmacells_wrap_fv_formatline:n { \mmacells_format_line_wrapper:n }
 
@@ -453,10 +468,6 @@
 
 \cs_new_eq:NN \mmacells_lst_set:n \lstset
 \cs_generate_variant:Nn \mmacells_lst_set:n { V }
-
-\cs_new_protected:Npn \mmacells_lst_set_literate:n #1
-  { \mmacells_lst_set:n { literate = { #1 } } }
-\cs_generate_variant:Nn \mmacells_lst_set_literate:n { V }
 
 \cs_new_eq:NN \mmacells_lst_define_style:nn \lstdefinestyle
 \cs_generate_variant:Nn \mmacells_lst_define_style:nn { nV }
