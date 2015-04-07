@@ -95,7 +95,6 @@
 \bool_new:N \l_mmacells_intype_bool
 \bool_new:N \l_mmacells_formatted_bool
 \bool_new:N \l_mmacells_annotations_bool
-\bool_new:N \l_mmacells_message_link_literate_bool
 \bool_new:N \l_mmacells_message_color_change_literate_bool
 
 \tl_new:N \l_mmacells_form_tl
@@ -132,7 +131,8 @@
 \cs_new_nopar:Npn \__mmacells_prepare_verbatimenv: { }
 \cs_new_nopar:Npn \__mmacells_begin_verbatimenv: { }
 \cs_new_nopar:Npn \__mmacells_end_verbatimenv: { }
-\cs_set_nopar:Npn \__mmacells_add_math_replacements: { }
+\cs_new_nopar:Npn \__mmacells_add_math_replacements: { }
+\cs_new_nopar:Npn \__mmacells_set_message_link_literate: {}
 
 
 \cs_generate_variant:Nn \coffin_typeset:Nnnnn { NVVVV }
@@ -220,18 +220,9 @@
           \l_mmacells_lst_keyval_clist
           \l_mmacells_formatted_lst_keyval_clist
       }
-
-    \bool_if:NT \l_mmacells_message_link_literate_bool
-      {
-        \tl_put_right:Nn \l_mmacells_lst_literate_tl
-          {
-            {>>}{{
-              \mmacells_link_builtin:Vn
-                \l_mmacells_message_link_tl
-                { \raisebox{0.2ex}{$\scriptstyle\pmb{\gg}$} }
-            }}1
-          }
-      }
+    
+    \__mmacells_set_message_link_literate:
+    
     \bool_if:NT \l_mmacells_message_color_change_literate_bool
       {
         \tl_put_right:Nn \l_mmacells_lst_literate_tl
@@ -328,7 +319,21 @@
       \tl_put_right:Nn \l_mmacells_lst_literate_tl { ~#1 },
     
     messagelink  .tl_set:N = \l_mmacells_message_link_tl,
-    messagelinkliterate .bool_set:N = \l_mmacells_message_link_literate_bool,
+    
+    messagelinktype .choice:,
+    messagelinktype / builtin .code:n =
+      \cs_set_protected_nopar:Npn \__mmacells_set_message_link_literate:
+        {
+          \__mmacells_set_message_link_literate:n { \mmacells_link_builtin:Vn }
+        },
+    messagelinktype / local .code:n =
+      \cs_set_protected_nopar:Npn \__mmacells_set_message_link_literate:
+        {
+          \__mmacells_set_message_link_literate:n { \mmacells_link_local:Vn }
+        },
+    messagelinktype / none .code:n =
+      \cs_set_nopar:Npn \__mmacells_set_message_link_literate: { },
+    
     messagecolorchangeliterate .bool_set:N =
       \l_mmacells_message_color_change_literate_bool,
     
@@ -533,6 +538,7 @@
 
 \cs_new_protected:Npn \mmacells_link_local:nn #1#2
   { \__mmacells_link:NNnn \hyperlink \mmacells_link_local_uri:n { #1 } { #2 } }
+\cs_generate_variant:Nn \mmacells_link_local:nn { Vn }
 
 \cs_new_protected:Npn \mmacells_link_builtin:nn #1#2
   { \__mmacells_link:NNnn \href \mmacells_link_builtin_uri:n { #1 } { #2 } }
@@ -548,6 +554,21 @@
         #1 { #2 { #3 } } { \mmacells_format_link:n { #4 } }
       }
     \group_end:
+  }
+
+
+\cs_new_protected:Npn \__mmacells_set_message_link_literate:n #1
+  {
+    \tl_put_right:Nn \l_mmacells_lst_literate_tl
+      {
+        { >> }
+        { {
+            #1
+              \l_mmacells_message_link_tl
+              { \raisebox{0.2ex}{$\scriptstyle\pmb{\gg}$} }
+        } }
+        { 1 }
+      }
   }
 
 
@@ -792,5 +813,5 @@
     basicstyle=\normalfont\sffamily\small\color{mmaComment},
   },
   messagecolorchangeliterate,
-  messagelinkliterate,
+  messagelinktype=builtin,
 }
