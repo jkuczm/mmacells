@@ -95,7 +95,7 @@
 \bool_new:N \l_mmacells_intype_bool
 \bool_new:N \l_mmacells_formatted_bool
 \bool_new:N \l_mmacells_annotations_bool
-\bool_new:N \l_mmacells_message_color_change_literate_bool
+\bool_new:N \l_mmacells_message_color_change_bool
 
 \tl_new:N \l_mmacells_form_tl
 \tl_new:N \l_mmacells_label_tl
@@ -223,7 +223,7 @@
     
     \__mmacells_set_message_link_literate:
     
-    \bool_if:NT \l_mmacells_message_color_change_literate_bool
+    \bool_if:NT \l_mmacells_message_color_change_bool
       {
         \tl_put_right:Nn \l_mmacells_lst_literate_tl
           {
@@ -334,8 +334,7 @@
     messagelinktype / none .code:n =
       \cs_set_nopar:Npn \__mmacells_set_message_link_literate: { },
     
-    messagecolorchangeliterate .bool_set:N =
-      \l_mmacells_message_color_change_literate_bool,
+    messagecolorchange .bool_set:N = \l_mmacells_message_color_change_bool,
     
     formatted   .bool_set:N = \l_mmacells_formatted_bool,
     annotations .bool_set:N = \l_mmacells_annotations_bool,
@@ -812,6 +811,6 @@
     language=,
     basicstyle=\normalfont\sffamily\small\color{mmaComment},
   },
-  messagecolorchangeliterate,
+  messagecolorchange,
   messagelinktype=builtin,
 }
