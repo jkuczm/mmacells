@@ -228,7 +228,7 @@
         \tl_put_right:Nn \l_mmacells_lst_literate_tl
           {
             {:\ }{{
-              \__mmacells_group_insetr_after:n { \color{mmaMessage}:\  }
+              \__mmacells_group_insert_after:n { \color{mmaMessage}:\  }
             }}1
           }
         % Using format line wrapper in addition to setting \color above due to
@@ -605,7 +605,7 @@
       }
   }
 
-\cs_new_protected:Npn \__mmacells_group_insetr_after:n #1
+\cs_new_protected:Npn \__mmacells_group_insert_after:n #1
   {
     \cs_gset_protected_nopar:Npn \g__mmacells_tmp_cs { #1 }
     \group_insert_after:N \g__mmacells_tmp_cs
