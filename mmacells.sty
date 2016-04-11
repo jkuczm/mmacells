@@ -733,6 +733,7 @@
     postwidelabel=\leavevmode\\,
     pole2=t,
   },
+  morepattern={\#}
 }
 
 \definecolor{mmaLabel}{RGB}{70,70,153}
@@ -751,6 +752,7 @@
 \definecolor{mmaComment}{gray}{.6}
 
 \lstdefinelanguage[base]{Mathematica}[5.2]{Mathematica}{
+  alsoletter={\#}, % It's used in Slot identifier names.
   morestring=[b]", % " inside string is escaped by backslash.
   morecomment=[n]{(*}{*)}, % Mathematica comments can be nested.
   deletekeywords=[2]$, % $ is not a keyword.
