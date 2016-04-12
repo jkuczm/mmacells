@@ -650,6 +650,9 @@
 \mmacells_define_annotation:nnnnn
   { Def } { defined } { keyword } { s } { 1 }
 
+\mmacells_define_idlistless_annotation:nnnn { Str } { string } { string } { }
+\mmacells_define_idlistless_annotation:nnnn { Cmt } { comment } { comment } { }
+
 \mmacells_define_link_annotation:nnnnnN
   { LnT } { linktarget  } { emph } { } { 1 } \mmacells_link_target:nn
 \mmacells_define_link_annotation:nnnnnN
@@ -734,6 +737,8 @@
   formattingerrorstyle={%
     \fboxsep0.3em\fcolorbox{mmaFormattingError}{mmaFormattingErrorBackground}%
   },
+  stringstyle=\color{mmaString},
+  commentstyle=\color{mmaComment},
   labelstyle=\normalfont\color{mmaLabel}\sffamily\scriptsize,
   linkstyle=\color{mmaLink},
   linkbuiltinuri=http://reference.wolfram.com/language/ref/#1.html,
@@ -785,8 +790,6 @@
 \mmaDefineFrontEndInStyle{
   style=MathematicaFrontEnd,
   basicstyle=\normalfont\color{black}\ttfamily\bfseries,
-  stringstyle=\color{mmaString},
-  commentstyle=\color{mmaComment},
   identifierstyle=\mmaUnd,
 }
 
