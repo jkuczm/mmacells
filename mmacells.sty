@@ -91,6 +91,7 @@
 \bool_new:N \g_mmacells_previous_intype_bool
 
 \bool_new:N \l_mmacells_uselist_bool
+\bool_new:N \l_mmacells_uselistings_bool
 \bool_new:N \l_mmacells_indexed_bool
 \bool_new:N \l_mmacells_intype_bool
 \bool_new:N \l_mmacells_formatted_bool
@@ -215,20 +216,25 @@
   }
 
 
-\cs_new_protected_nopar:Npn \__mmacells_prepare_verbatim_keyval:
+\cs_new_protected_nopar:Npn \__mmacells_prepare_formatted_keyval:
   {
-    \bool_if:NT \l_mmacells_formatted_bool
+    \clist_put_left:Nn
+      \l_mmacells_fv_keyval_clist
       {
-        \clist_put_left:Nn
-          \l_mmacells_fv_keyval_clist
-          {
-            commandchars=\\\{\},
-            formatcom*={\everymath{\displaystyle}},
-          }
+        commandchars=\\\{\},
+        formatcom*={\everymath{\displaystyle}},
+      }
+    \bool_if:NT \l_mmacells_uselistings_bool
+      {
         \clist_put_left:NV
           \l_mmacells_lst_keyval_clist
           \l_mmacells_formatted_lst_keyval_clist
       }
+  }
+
+\cs_new_protected_nopar:Npn \__mmacells_prepare_lst_keyval:
+  {
+    \clist_put_left:Nn \l_mmacells_lst_keyval_clist { fancyvrb=true }
     
     \__mmacells_set_message_link_literate:
     
@@ -268,15 +274,26 @@
 
 \cs_new_protected_nopar:Npn \mmacells_prepare_verbatimenv:
   {
-    \__mmacells_prepare_verbatim_keyval:
-
-    \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
-
-    \mmacells_fv_set:n { formatcom* = \__mmacells_fix_labels: }
+    \bool_if:NT \l_mmacells_formatted_bool
+      { \__mmacells_prepare_formatted_keyval: }
+    
+    \bool_if:NTF \l_mmacells_uselistings_bool
+      {
+        \__mmacells_prepare_lst_keyval:
+        
+        \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
+        
+        % Activating listings-fancuvrb interface moves labels of list
+        % environment, that are in the same line as Verbatim environment.
+        % \__mmacells_fix_labels: fixes this issue.
+        \mmacells_fv_set:n { formatcom* = \__mmacells_fix_labels: }
+      }
+      { \mmacells_lst_set:n { fancyvrb=false } }
+    
     \mmacells_fv_set:V \l_mmacells_fv_keyval_clist
-              
+        
     \__mmacells_wrap_fv_formatline:n { \mmacells_format_line_wrapper:n }
-
+    
     \VerbatimEnvironment
   }
 
@@ -300,6 +317,7 @@
     verbatimenv .initial:n = Verbatim,
     
     uselist .bool_set:N = \l_mmacells_uselist_bool,
+    uselistings .bool_set:N = \l_mmacells_uselistings_bool,
     postwidelabel .code:n = \cs_set:Npn \mmacells_post_wide_label: { #1 },
     postwidelabel .initial:n = { \leavevmode \@nobreaktrue \parskip=0pt },
     
@@ -449,22 +467,33 @@
     \leavevmode
     \group_begin:
     \keys_set:nn { mmacells } { style={#2}, #1 }
-    \__mmacells_prepare_verbatim_keyval:
+    \bool_if:NTF \l_mmacells_uselistings_bool
+      { \__mmacells_prepare_lst_keyval: }
+      { \mmacells_lst_set:n { fancyvrb=false } }
     
     \bool_if:NTF \l_mmacells_formatted_bool
       {
+        \__mmacells_prepare_formatted_keyval:
         \mmacells_fv_set:V \l_mmacells_fv_keyval_clist
-        \__mmacells_fv_formatting_prep:
         \tl_set_rescan:Nnn \l_tmpa_tl { \__mmacells_fv_cat_codes: } { #3 }
       }
-      { \tl_set:Nn \l_tmpa_tl { #3 } }
+      {
+        \mmacells_fv_set:V \l_mmacells_fv_keyval_clist
+        \tl_set:Nn \l_tmpa_tl { #3 }
+      }
     
-    \__mmacells_lst_hook_pre_set:
-    \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
-    \__mmacells_lst_hook_text_style:
-    \__mmacells_lst_init:n { \relax }
-    \__mmacells_lst_fv_format_inline:V \l_tmpa_tl
-    \__mmacells_lst_deinit:
+    \__mmacells_fv_formatting_prep:
+    
+    \bool_if:NTF \l_mmacells_uselistings_bool
+      {
+        \__mmacells_lst_hook_pre_set:
+        \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
+        \__mmacells_lst_hook_text_style:
+        \__mmacells_lst_init:n { \relax }
+        \__mmacells_lst_fv_format_inline:V \l_tmpa_tl
+        \__mmacells_lst_deinit:
+      }
+      { \tl_use:N \l_tmpa_tl }
     
     \group_end:
   }
@@ -625,7 +654,14 @@
     \cs_set_eq:NN \__mmacells_fv_formatline:n \FancyVerbFormatLine
     \cs_set:Npn \FancyVerbFormatLine ##1
       { #1 { \__mmacells_fv_formatline:n { ##1 } } }
-    \cs_set_eq:NN \lstFV@FancyVerbFormatLine \FancyVerbFormatLine
+    % listings permanently adds code to \FV@VerbatimBegin and
+    % \FV@VerbatimEnd command (and corresponding for LVerbatim and BVerbatim)
+    % This code is executed if \FancyVerbFormatLine
+    % is equivalent to \lstFV@FancyVerbFormatLine. So if we're using
+    % listings-fancyverb interface we must make sure that those two commands
+    % are the same.
+    \bool_if:NT \l_mmacells_uselistings_bool
+      { \cs_set_eq:NN \lstFV@FancyVerbFormatLine \FancyVerbFormatLine }
   }
 
 \cs_new_protected:Npn \__mmacells_clist_put_right:Nncn #1#2#3#4
@@ -712,13 +748,12 @@
   {{\fboxsep0pt\colorbox{#1}{\strut #2}}}
 
 \mmaSet{
-  lst={
-    fancyvrb,
-    language=[base]Mathematica,
-  },
+  fv={formatcom*=\normalfont\color{black}\ttfamily},
+  lst={language=[base]Mathematica},
   leftmargin=4.8em,
   labelsep=.6em,
   uselist=true,
+  uselistings=true,
   definedstyle=\color{black},
   undefinedstyle=\color{mmaUndefined},
   functionlocalstyle=\color{mmaFunctionLocal},
@@ -798,6 +833,7 @@
   intype,
   annotations,
   morelst={style=MathematicaFrontEndIn},
+  morefv={formatcom*=\bfseries},
   label={In[\mmaCellIndex]:=},
 }
 \mmaDefineCellStyle{Input}{
