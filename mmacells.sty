@@ -760,7 +760,8 @@
   {{\fboxsep0pt\colorbox{#1}{\strut #2}}}
 
 \mmaSet{
-  fv={formatcom*=\normalfont\color{black}\ttfamily},
+  fv={formatcom*=\normalfont\ttfamily},
+  formatline=\color{black},
   lst={language=[base]Mathematica},
   leftmargin=4.8em,
   labelsep=.6em,
@@ -827,7 +828,6 @@
 }
 \lstdefinestyle{MathematicaFrontEndOut}{
   style=MathematicaFrontEnd,
-  basicstyle=\normalfont\color{black}\ttfamily,
   keywordstyle=,
   stringstyle=,
   commentstyle=,
@@ -836,7 +836,6 @@
 }
 \mmaDefineFrontEndInStyle{
   style=MathematicaFrontEnd,
-  basicstyle=\normalfont\color{black}\ttfamily\bfseries,
   identifierstyle=\mmaUnd,
 }
 
@@ -871,8 +870,10 @@
   style/Print,
   morelst={
     language=,
-    basicstyle=\normalfont\sffamily\small\color{mmaComment},
+    basicstyle=\color{mmaComment},
   },
+  morefv={formatcom*={\normalfont\sffamily\small}},
+  formatline=\color{mmaMessage},
   messagecolorchange,
   messagelinktype=builtin,
 }
