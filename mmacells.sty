@@ -13,7 +13,7 @@
 
 \RequirePackage{expl3,xparse}
 
-\ProvidesExplPackage {mmacells} {2015/04/08} {0.2.0}
+\ProvidesExplPackage {mmacells} {2016/05/20} {0.3.0}
   {Mathematica front end cells}
 
 \RequirePackage{amsmath,bbm}
@@ -484,16 +484,19 @@
     
     \__mmacells_fv_formatting_prep:
     
-    \bool_if:NTF \l_mmacells_uselistings_bool
+    \mmacells_format_line_wrapper:n
       {
-        \__mmacells_lst_hook_pre_set:
-        \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
-        \__mmacells_lst_hook_text_style:
-        \__mmacells_lst_init:n { \relax }
-        \__mmacells_lst_fv_format_inline:V \l_tmpa_tl
-        \__mmacells_lst_deinit:
+        \bool_if:NTF \l_mmacells_uselistings_bool
+          {
+            \__mmacells_lst_hook_pre_set:
+            \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
+            \__mmacells_lst_hook_text_style:
+            \__mmacells_lst_init:n { \relax }
+            \__mmacells_lst_fv_format_inline:V \l_tmpa_tl
+            \__mmacells_lst_deinit:
+          }
+          { \tl_use:N \l_tmpa_tl }
       }
-      { \tl_use:N \l_tmpa_tl }
     
     \group_end:
   }
@@ -760,7 +763,8 @@
   {{\fboxsep0pt\colorbox{#1}{\strut #2}}}
 
 \mmaSet{
-  fv={formatcom*=\normalfont\color{black}\ttfamily},
+  fv={formatcom*=\normalfont\ttfamily},
+  formatline=\color{black},
   lst={language=[base]Mathematica},
   leftmargin=4.8em,
   labelsep=.6em,
@@ -827,7 +831,6 @@
 }
 \lstdefinestyle{MathematicaFrontEndOut}{
   style=MathematicaFrontEnd,
-  basicstyle=\normalfont\color{black}\ttfamily,
   keywordstyle=,
   stringstyle=,
   commentstyle=,
@@ -836,7 +839,6 @@
 }
 \mmaDefineFrontEndInStyle{
   style=MathematicaFrontEnd,
-  basicstyle=\normalfont\color{black}\ttfamily\bfseries,
   identifierstyle=\mmaUnd,
 }
 
@@ -871,8 +873,10 @@
   style/Print,
   morelst={
     language=,
-    basicstyle=\normalfont\sffamily\small\color{mmaComment},
+    basicstyle=\color{mmaComment},
   },
+  morefv={formatcom*={\normalfont\sffamily\small}},
+  formatline=\color{mmaMessage},
   messagecolorchange,
   messagelinktype=builtin,
 }
