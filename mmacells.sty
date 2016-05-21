@@ -138,7 +138,7 @@
 \cs_generate_variant:Nn \coffin_typeset:Nnnnn { NVVVV }
 
 
-\cs_new_protected:Npn \mmacells_define_annotation:nnnnn #1#2#3#4#5
+\cs_new_protected:Npn \mmacells_define_idlistless_annotation:nnnn #1#2#3#4
   {
     \exp_args:Nc \NewDocumentCommand { mma#1 } { m }
       { \mmacells_typeset_formatted:cn { mmacells_format_#2:n } { ##1 } }
@@ -150,8 +150,13 @@
         #2style .code:n = \mmacells_set_formatting_function:nn { #2 } { ##1 },
       }
     
-    \mmacells_define_annotation_keys:nnnnnn
-      { #1 } { } { #2 } { #3 } { #4 } { #5 }
+    \__mmacells_register_lst_annotation:nnnn { #1 } { } { #3 } { #4 }
+  }
+
+\cs_new_protected:Npn \mmacells_define_annotation:nnnnn #1#2#3#4#5
+  {
+    \mmacells_define_idlistless_annotation:nnnn { #1 } { #2 } { #3 } { [#5] }
+    \__mmacells_define_idlist_keys:nnn { #2 } { #3#4 } { #5 }
   }
 \cs_generate_variant:Nn \mmacells_define_annotation:nnnnn { nnnnV }
 
@@ -168,21 +173,25 @@
           }
       }
     
-    \mmacells_define_annotation_keys:nnnnnn
-      { #1 } { * } { #2 } { #3 } { #4 } { #5 }
+    \__mmacells_register_lst_annotation:nnnn { #1 } { * } { #3 } { [#5] }
+    \__mmacells_define_idlist_keys:nnn { #2 } { #3#4 } { #5 }
   }
 
-\cs_new_protected:Npn \mmacells_define_annotation_keys:nnnnnn #1#2#3#4#5#6
+\cs_new_protected:Npn \__mmacells_define_idlist_keys:nnn #1#2#3
   {
     \keys_define:nn { mmacells }
       {
-        #3       .meta:n = { morelst = { #4#5       = {[#6] ##1 } } },
-        more#3   .meta:n = { morelst = { more#4#5   = {[#6] ##1 } } },
-        delete#3 .meta:n = { morelst = { delete#4#5 = {[#6] ##1 } } },
+        #1       .meta:n = { morelst = { #2       = {[#3] ##1 } } },
+        more#1   .meta:n = { morelst = { more#2   = {[#3] ##1 } } },
+        delete#1 .meta:n = { morelst = { delete#2 = {[#3] ##1 } } },
       }
+  }
+
+\cs_new_protected:Npn \__mmacells_register_lst_annotation:nnnn #1#2#3#4
+  {
     \__mmacells_clist_put_right:Nncn
       \l_mmacells_frontendin_style_lst_keyval_clist
-      { #4style=[#6] } { mma#1 } { #2 }
+      { #3style=#4 } { mma#1 } { #2 }
     
     \__mmacells_clist_put_right:Nncn \l_mmacells_annotations_lst_keyval_clist
       { moredelim=[is][ } { mma#1 } { #2]{\\mma#1\{}{\}} }
@@ -641,6 +650,9 @@
 \mmacells_define_annotation:nnnnn
   { Def } { defined } { keyword } { s } { 1 }
 
+\mmacells_define_idlistless_annotation:nnnn { Str } { string } { string } { }
+\mmacells_define_idlistless_annotation:nnnn { Cmt } { comment } { comment } { }
+
 \mmacells_define_link_annotation:nnnnnN
   { LnT } { linktarget  } { emph } { } { 1 } \mmacells_link_target:nn
 \mmacells_define_link_annotation:nnnnnN
@@ -725,6 +737,8 @@
   formattingerrorstyle={%
     \fboxsep0.3em\fcolorbox{mmaFormattingError}{mmaFormattingErrorBackground}%
   },
+  stringstyle=\color{mmaString},
+  commentstyle=\color{mmaComment},
   labelstyle=\normalfont\color{mmaLabel}\sffamily\scriptsize,
   linkstyle=\color{mmaLink},
   linkbuiltinuri=http://reference.wolfram.com/language/ref/#1.html,
@@ -776,8 +790,6 @@
 \mmaDefineFrontEndInStyle{
   style=MathematicaFrontEnd,
   basicstyle=\normalfont\color{black}\ttfamily\bfseries,
-  stringstyle=\color{mmaString},
-  commentstyle=\color{mmaComment},
   identifierstyle=\mmaUnd,
 }
 
