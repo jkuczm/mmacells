@@ -707,26 +707,38 @@
 % 
 % Using \text inside math commands that rescale arguments, since otherwise code
 % fragments processed with listings are not properly scaled in nested commands.
+% For consistency use \text in all commands.
+% \mma...M commands, with first argument processed in math mode are for special
+% cases where sub- or super-script needs to be next to argument, like in case
+% of \int.
 
 % SubscriptBox
-\NewDocumentCommand \mmaSup { m m } {\ensuremath{#1^\text{#2}}}
+\NewDocumentCommand \mmaSup { m m } {\ensuremath{\text{#1}^\text{#2}}}
+\NewDocumentCommand \mmaSupM { m m } {\ensuremath{#1^\text{#2}}}
 % SuperscriptBox
-\NewDocumentCommand \mmaSub { m m } {\ensuremath{#1_\text{#2}}}
+\NewDocumentCommand \mmaSub { m m } {\ensuremath{\text{#1}_\text{#2}}}
+\NewDocumentCommand \mmaSubM { m m } {\ensuremath{#1_\text{#2}}}
 % SubsuperscriptBox
-\NewDocumentCommand \mmaSubSup { m m m } {\ensuremath{#1_\text{#2}^\text{#3}}}
+\NewDocumentCommand \mmaSubSup { m m m }
+  {\ensuremath{\text{#1}_\text{#2}^\text{#3}}}
+\NewDocumentCommand \mmaSubSupM { m m m }
+  {\ensuremath{#1_\text{#2}^\text{#3}}}
 % UnderscriptBox
-\NewDocumentCommand \mmaUnder { m m } {\ensuremath{\underset{\text{#2}}{#1}}}
+\NewDocumentCommand \mmaUnder { m m }
+  {\ensuremath{\underset{\text{#2}}{\text{#1}}}}
 % OverscriptBox
-\NewDocumentCommand \mmaOver { m m } {\ensuremath{\overset{\text{#2}}{#1}}}
+\NewDocumentCommand \mmaOver { m m }
+  {\ensuremath{\overset{\text{#2}}{\text{#1}}}}
 % UnderoverscriptBox
 \NewDocumentCommand \mmaUnderOver { m m m }
-  {\ensuremath{\underset{\text{#2}}{\overset{\text{#3}}{#1}}}}
+  {\ensuremath{\underset{\text{#2}}{\overset{\text{#3}}{\text{#1}}}}}
 % FractionBox
 \NewDocumentCommand \mmaFrac { m m } {\ensuremath{\frac{\text{#1}}{\text{#2}}}}
 % SqrtBox
-\NewDocumentCommand \mmaSqrt { m } {\ensuremath{\sqrt{#1}}}
+\NewDocumentCommand \mmaSqrt { m } {\ensuremath{\sqrt{\text{#1}}}}
 % RadicalBox
-\NewDocumentCommand \mmaRadical { m m } {\ensuremath{\sqrt[\text{#2}]{#1}}}
+\NewDocumentCommand \mmaRadical { m m }
+  {\ensuremath{\sqrt[\text{#2}]{\text{#1}}}}
 
 
 \mmaDefineAnnotation[Und]{undefined}
