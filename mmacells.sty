@@ -13,7 +13,7 @@
 
 \RequirePackage{expl3,xparse}
 
-\ProvidesExplPackage {mmacells} {2016/05/20} {0.3.0}
+\ProvidesExplPackage {mmacells} {2016/06/26} {0.3.1}
   {Mathematica front end cells}
 
 \RequirePackage{amsmath,bbm}
@@ -817,11 +817,12 @@
 \definecolor{mmaComment}{gray}{.6}
 
 \lstdefinelanguage[base]{Mathematica}[5.2]{Mathematica}{
-  alsoletter={\#}, % It's used in Slot identifier names.
+  alsoletter={\#}, % # is used in Slot identifier names.
+  alsoother={@}, % @ is an operator.
   morestring=[b]", % " inside string is escaped by backslash.
   morecomment=[n]{(*}{*)}, % Mathematica comments can be nested.
   deletekeywords=[2]$, % $ is not a keyword.
-  morekeywords={@,_},
+  morekeywords={_},
   keywordsprefix=_, % Blank... patterns with head
 }[keywords,comments,strings,fancyvrb]
 \lstdefinestyle{MathematicaFrontEnd}{
