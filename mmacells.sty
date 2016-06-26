@@ -817,11 +817,12 @@
 \definecolor{mmaComment}{gray}{.6}
 
 \lstdefinelanguage[base]{Mathematica}[5.2]{Mathematica}{
-  alsoletter={\#}, % It's used in Slot identifier names.
+  alsoletter={\#}, % # is used in Slot identifier names.
+  alsoother={@}, % @ is an operator.
   morestring=[b]", % " inside string is escaped by backslash.
   morecomment=[n]{(*}{*)}, % Mathematica comments can be nested.
   deletekeywords=[2]$, % $ is not a keyword.
-  morekeywords={@,_},
+  morekeywords={_},
   keywordsprefix=_, % Blank... patterns with head
 }[keywords,comments,strings,fancyvrb]
 \lstdefinestyle{MathematicaFrontEnd}{
