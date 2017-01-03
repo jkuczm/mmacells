@@ -28,7 +28,7 @@ on TeX Stack Exchange.
 ## Installation
 
 1. Download latest released
-   [mmacells.sty](https://raw.githubusercontent.com/jkuczm/mmacells/v0.3.1/mmacells.sty)
+   [mmacells.sty](https://raw.githubusercontent.com/jkuczm/mmacells/v0.3.2/mmacells.sty)
    file.
 
 2. Put it someplace [where your TeX distribution can find it](http://tex.stackexchange.com/q/1137/70587).
