@@ -13,7 +13,7 @@
 
 \RequirePackage{expl3,xparse}
 
-\ProvidesExplPackage {mmacells} {2016/06/26} {0.3.1}
+\ProvidesExplPackage {mmacells} {2017/01/03} {0.3.2}
   {Mathematica front end cells}
 
 \RequirePackage{amsmath,bbm}
@@ -825,6 +825,12 @@
   morekeywords={_},
   keywordsprefix=_, % Blank... patterns with head
 }[keywords,comments,strings,fancyvrb]
+
+% Use newly defined Mathematica language to make sure everything is properly
+% initialized. \lstset sets options only inside current group,
+% delimited by braces, so this has no effect besides initialization.
+{\lstset{language=[base]Mathematica}}
+
 \lstdefinestyle{MathematicaFrontEnd}{
   showstringspaces=false,
   columns=fullflexible,
