@@ -825,7 +825,8 @@
 \definecolor{mmaComment}{gray}{.6}
 
 \lstdefinelanguage[base]{Mathematica}[5.2]{Mathematica}{
-  alsoletter={\#}, % # is used in Slot identifier names.
+  alsoletter={\#`}, % # is used in Slot identifier names.
+                    % ` is a context mark that is part of symbol names.
   alsoother={@}, % @ is an operator.
   morestring=[b]", % " inside string is escaped by backslash.
   morecomment=[n]{(*}{*)}, % Mathematica comments can be nested.
