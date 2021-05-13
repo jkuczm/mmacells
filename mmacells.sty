@@ -129,6 +129,9 @@
 \tl_new:N \l__mmacells_math_replacements_tl
 \tl_new:N \l__mmacells_math_replacements_bold_tl
 
+\cs_new:Npn \__mmacells_fv_formatline:n #1 { #1 }
+\cs_generate_variant:Nn \__mmacells_fv_formatline:n { V }
+
 \cs_new_nopar:Npn \__mmacells_prepare_verbatimenv: { }
 \cs_new_nopar:Npn \__mmacells_begin_verbatimenv: { }
 \cs_new_nopar:Npn \__mmacells_end_verbatimenv: { }
@@ -663,17 +666,37 @@
 \cs_new_protected:Npn \__mmacells_wrap_fv_formatline:n #1
   {
     \cs_set_eq:NN \__mmacells_fv_formatline:n \FancyVerbFormatLine
-    \cs_set:Npn \FancyVerbFormatLine ##1
-      { #1 { \__mmacells_fv_formatline:n { ##1 } } }
-    % listings permanently adds code to \FV@VerbatimBegin and
-    % \FV@VerbatimEnd command (and corresponding for LVerbatim and BVerbatim)
-    % This code is executed if \FancyVerbFormatLine
-    % is equivalent to \lstFV@FancyVerbFormatLine. So if we're using
-    % listings-fancyverb interface we must make sure that those two commands
-    % are the same.
-    \bool_if:NT \l_mmacells_uselistings_bool
-      { \cs_set_eq:NN \lstFV@FancyVerbFormatLine \FancyVerbFormatLine }
+    
+    \bool_if:NTF \l_mmacells_uselistings_bool
+      {
+        % ^^M characters present in argument passed to \FancyVerbFormatLine,
+        % set by listings-fancyverb interface, lead to infinite compilation.
+        % So we'll just get rid of them.
+        \cs_set:Npn \FancyVerbFormatLine ##1
+          {
+            \tl_set:Nn \l_tmpa_tl { ##1 }
+            \__mmacells_replace_carriage_return:N \l_tmpa_tl
+            #1 { \__mmacells_fv_formatline:V \l_tmpa_tl }
+          }
+        
+        % listings permanently adds code to \FV@VerbatimBegin and
+        % \FV@VerbatimEnd command (and corresponding for LVerbatim and
+        % BVerbatim). This code is executed if \FancyVerbFormatLine
+        % is equivalent to \lstFV@FancyVerbFormatLine. So if we're using
+        % listings-fancyverb interface we must make sure that those two commands
+        % are the same.
+        \cs_set_eq:NN \lstFV@FancyVerbFormatLine \FancyVerbFormatLine
+      }
+      {
+        \cs_set:Npn \FancyVerbFormatLine ##1
+          { #1 { \__mmacells_fv_formatline:n { ##1 } } }
+      }
   }
+
+\char_set_catcode_active:n { `\^^M }
+\cs_new_protected:Npn \__mmacells_replace_carriage_return:N #1
+  { \regex_replace_all:nnN { ^^M } { \c{empty} } #1 }
+\char_set_catcode_end_line:n { `\^^M }
 
 \cs_new_protected:Npn \__mmacells_clist_put_right:Nncn #1#2#3#4
   {
