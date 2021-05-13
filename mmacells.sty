@@ -232,8 +232,17 @@
         \clist_put_left:NV
           \l_mmacells_lst_keyval_clist
           \l_mmacells_formatted_lst_keyval_clist
+        
+        % \left and \right commands don't work properly with listings-fancyverb
+        % interface, we can make them work by redefining them as "ordinary"
+        % document-level functions.
+        \RenewDocumentCommand \left { m } { \__mmacells_tex_left:w ##1 }
+        \RenewDocumentCommand \right { m } { \__mmacells_tex_right:w ##1 }
       }
   }
+
+\cs_new_eq:NN \__mmacells_tex_left:w \left
+\cs_new_eq:NN \__mmacells_tex_right:w \right
 
 \cs_new_protected_nopar:Npn \__mmacells_prepare_lst_keyval:
   {
@@ -714,6 +723,8 @@
     morefvcmdparams=\Big 1,
     morefvcmdparams=\bigg 1,
     morefvcmdparams=\Bigg 1,
+    morefvcmdparams=\left 1,
+    morefvcmdparams=\right 1,
   }
 
 
