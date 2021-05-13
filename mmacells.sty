@@ -419,7 +419,7 @@
     
     \bool_if:NT \l_mmacells_uselist_bool
       {
-        \begin{list}{\box_use:N \l_mmacells_label_box}{
+        \list{\box_use:N \l_mmacells_label_box}{
           \labelsep=\l_mmacells_label_sep_dim
           \leftmargin=\l_mmacells_leftmargin_dim
           \labelwidth=\l_mmacells_label_dim
@@ -439,7 +439,7 @@
   {
     \__mmacells_end_verbatimenv:
     \bool_if:NT \l_mmacells_uselist_bool
-      { \end{list} }
+      { \endlist }
   }
 
 \cs_new_protected:Npn \mmacells_cell_graphics:nnn #1#2#3
