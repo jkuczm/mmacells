@@ -642,9 +642,17 @@
     \hbox_set:Nn \@labels
       {
         \skip_horizontal:N \@totalleftmargin
-        \hbox_unpack_drop:N \@labels
+        \__mmacells_hbox_unpack_drop:N \@labels
       }
   }
+
+% \hbox_unpack_clear:N was renamed to \hbox_unpack_drop:N in 2019,
+% but some distributions still ship older versions of expl3.
+\if_cs_exist:N \hbox_unpack_drop:N
+  \cs_new_protected:Npn \__mmacells_hbox_unpack_drop:N { \hbox_unpack_drop:N }
+\else:
+  \cs_new_protected:Npn \__mmacells_hbox_unpack_drop:N { \hbox_unpack_clear:N }
+\fi:
 
 \cs_new_protected:Npn \__mmacells_group_insert_after:n #1
   {
