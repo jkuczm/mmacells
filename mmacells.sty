@@ -295,10 +295,15 @@
         
         \mmacells_lst_set:V \l_mmacells_lst_keyval_clist
         
-        % Activating listings-fancuvrb interface moves labels of list
-        % environment, that are in the same line as Verbatim environment.
-        % \__mmacells_fix_labels: fixes this issue.
-        \mmacells_fv_set:n { formatcom* = \__mmacells_fix_labels: }
+        % Listings-fancyvrb interface has some problems.
+        % * It moves labels of list environment,
+        %   that are in the same line as Verbatim environment.
+        %   \__mmacells_fix_labels: fixes this issue.
+        % * Last line loses color set in listings.
+        %   With caption package, last line completly vanishes.
+        %   \__mmacells_fix_last_line: fixes this issue.
+        \mmacells_fv_set:n
+          { formatcom* = \__mmacells_fix_labels: \__mmacells_fix_last_line: }
       }
       { \mmacells_lst_set:n { fancyvrb=false } }
     
@@ -648,6 +653,15 @@
 \cs_new_nopar:Npn \__mmacells_lst_hook_text_style: { \lsthk@TextStyle }
 
 \cs_new_nopar:Npn \mmacells_lst_token: { \the \lst@token }
+
+\cs_new_protected_nopar:Npn \__mmacells_fix_last_line:
+  {
+    \tl_remove_once:Nn \FV@VerbatimEnd { \lstFV@VerbatimEnd }
+    \tl_remove_once:Nn \FV@LVerbatimEnd { \lstFV@VerbatimEnd }
+    \tl_replace_once:Nnn \FV@EndList
+      { \FV@ListProcessLastLine }
+      { \FV@ListProcessLastLine \lstFV@VerbatimEnd }
+  }
 
 \cs_new_protected_nopar:Npn \__mmacells_fix_labels:
   {
