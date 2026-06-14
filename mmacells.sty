@@ -13,7 +13,7 @@
 
 \RequirePackage{expl3,xparse}
 
-\ProvidesExplPackage {mmacells} {2017/01/03} {0.3.2}
+\ProvidesExplPackage {mmacells} {2026/06/14} {0.3.3}
   {Mathematica front end cells}
 
 \RequirePackage{amsmath,bbm}
@@ -136,7 +136,7 @@
 \cs_new_nopar:Npn \__mmacells_begin_verbatimenv: { }
 \cs_new_nopar:Npn \__mmacells_end_verbatimenv: { }
 \cs_new_nopar:Npn \__mmacells_add_math_replacements: { }
-\cs_new_nopar:Npn \__mmacells_set_message_link_literate: {}
+\cs_new_nopar:Npn \__mmacells_set_message_link_literate: { }
 
 
 \cs_generate_variant:Nn \coffin_typeset:Nnnnn { NVVVV }
@@ -706,8 +706,8 @@
         % \FV@VerbatimEnd command (and corresponding for LVerbatim and
         % BVerbatim). This code is executed if \FancyVerbFormatLine
         % is equivalent to \lstFV@FancyVerbFormatLine. So if we're using
-        % listings-fancyverb interface we must make sure that those two commands
-        % are the same.
+        % listings-fancyverb interface we must make sure that those two
+        % commands are the same.
         \cs_set_eq:NN \lstFV@FancyVerbFormatLine \FancyVerbFormatLine
       }
       {
@@ -821,7 +821,7 @@
 \mmaSet{
   fv={formatcom*=\normalfont\ttfamily},
   formatline=\color{black},
-  lst={language=[base]Mathematica},
+  lst={language=[mmacells]Mathematica},
   leftmargin=4.8em,
   labelsep=.6em,
   uselist=true,
@@ -872,7 +872,7 @@
 \definecolor{mmaString}{gray}{.4}
 \definecolor{mmaComment}{gray}{.6}
 
-\lstdefinelanguage[base]{Mathematica}[5.2]{Mathematica}{
+\lstdefinelanguage[mmacells]{Mathematica}[]{Mathematica}{
   alsoletter={\#`}, % # is used in Slot identifier names.
                     % ` is a context mark that is part of symbol names.
   alsoother={@}, % @ is an operator.
@@ -886,7 +886,7 @@
 % Use newly defined Mathematica language to make sure everything is properly
 % initialized. \lstset sets options only inside current group,
 % delimited by braces, so this has no effect besides initialization.
-{\lstset{language=[base]Mathematica}}
+{\lstset{language=[mmacells]Mathematica}}
 
 \lstdefinestyle{MathematicaFrontEnd}{
   showstringspaces=false,
