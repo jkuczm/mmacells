@@ -821,7 +821,7 @@
 \mmaSet{
   fv={formatcom*=\normalfont\ttfamily},
   formatline=\color{black},
-  lst={language=[base]Mathematica},
+  lst={language=[mmacells]Mathematica},
   leftmargin=4.8em,
   labelsep=.6em,
   uselist=true,
@@ -872,7 +872,7 @@
 \definecolor{mmaString}{gray}{.4}
 \definecolor{mmaComment}{gray}{.6}
 
-\lstdefinelanguage[base]{Mathematica}[]{Mathematica}{
+\lstdefinelanguage[mmacells]{Mathematica}[]{Mathematica}{
   alsoletter={\#`}, % # is used in Slot identifier names.
                     % ` is a context mark that is part of symbol names.
   alsoother={@}, % @ is an operator.
@@ -886,7 +886,7 @@
 % Use newly defined Mathematica language to make sure everything is properly
 % initialized. \lstset sets options only inside current group,
 % delimited by braces, so this has no effect besides initialization.
-{\lstset{language=[base]Mathematica}}
+{\lstset{language=[mmacells]Mathematica}}
 
 \lstdefinestyle{MathematicaFrontEnd}{
   showstringspaces=false,
